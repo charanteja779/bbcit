@@ -6,6 +6,7 @@ function Logout() {
 
     const handleLogout = () => {
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
         navigate("/"); // redirect to login
     };
 

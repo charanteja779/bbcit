@@ -1,4 +1,36 @@
 
+.hero {
+  margin-bottom: 16px;
+  animation: fadeInDown 0.8s ease;
+}
+
+.hero img {
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+}
+
+.hero img:hover {
+  transform: scale(1.05);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure full page coverage */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 #next-steps {
   display: flex;

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-<Link to="/home">Home</Link>
+{/* <Link to="/home">Home</Link> */}
 
 function Home() {
   const navigate = useNavigate();
