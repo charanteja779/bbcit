@@ -9,29 +9,30 @@
   z-index: 2;
 }
 
-/* Auth Card Wrapper */
+/* Auth Card Wrapper - Classical College Design */
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(248, 247, 244, 0.95);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 24px;
+  border: 2px solid rgba(26, 58, 82, 0.15);
+  border-radius: 12px;
   padding: 48px 40px;
   box-shadow: 
-    0 8px 32px rgba(90, 58, 168, 0.1),
-    0 0 1px rgba(90, 58, 168, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 8px 32px rgba(26, 58, 82, 0.12),
+    0 0 1px rgba(26, 58, 82, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   position: relative;
   transition: all 0.3s ease;
 }
 
 .auth-card:hover {
   box-shadow: 
-    0 12px 48px rgba(90, 58, 168, 0.15),
-    0 0 1px rgba(90, 58, 168, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 12px 48px rgba(26, 58, 82, 0.15),
+    0 0 1px rgba(26, 58, 82, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
+  border-color: rgba(184, 134, 11, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -48,7 +49,7 @@
 }
 
 .logo-img:hover {
-  transform: scale(1.08) rotateY(5deg);
+  transform: scale(1.08);
 }
 
 /* Tab Switcher */
@@ -56,7 +57,7 @@
   display: flex;
   gap: 32px;
   margin-bottom: 40px;
-  border-bottom: 2px solid rgba(90, 58, 168, 0.1);
+  border-bottom: 2px solid rgba(26, 58, 82, 0.1);
   padding-bottom: 16px;
   position: relative;
 }
@@ -66,7 +67,7 @@
   border: none;
   font-size: 16px;
   font-weight: 600;
-  color: #9ca3af;
+  color: #999999;
   cursor: pointer;
   padding: 8px 4px;
   transition: color 0.3s ease;
@@ -76,11 +77,11 @@
 }
 
 .tab-button:hover {
-  color: #5a3aa8;
+  color: #1a3a52;
 }
 
 .tab-button.active {
-  color: #5a3aa8;
+  color: #1a3a52;
 }
 
 /* Active tab underline indicator */
@@ -91,7 +92,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #5a3aa8, #8b5fbf);
+  background: linear-gradient(90deg, #1a3a52, #b8860b);
   border-radius: 2px;
   animation: slideIn 0.3s ease;
 }
@@ -109,14 +110,14 @@
 .auth-heading {
   font-size: 28px;
   font-weight: 700;
-  color: #1a202c;
+  color: #1a3a52;
   margin: 0 0 8px 0;
   letter-spacing: -0.5px;
 }
 
 .auth-subtitle {
   font-size: 14px;
-  color: #718096;
+  color: #666666;
   margin: 0 0 32px 0;
   font-weight: 400;
   line-height: 1.5;
@@ -137,7 +138,7 @@
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #4a5568;
+  color: #1a3a52;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -147,25 +148,24 @@
 .form-input {
   width: 100%;
   padding: 14px 16px 14px 44px;
-  background: #f8f6ff;
-  border: 1.5px solid #e9d7ff;
-  border-radius: 12px;
+  background: #fafaf9;
+  border: 1.5px solid #d4cfc9;
+  border-radius: 8px;
   font-size: 15px;
-  color: #1a202c;
-  /* font-family: var(--sans); */
+  color: #1a3a52;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  background: #fafbff;
-  border-color: #8b5fbf;
-  box-shadow: 0 0 0 3px rgba(90, 58, 168, 0.08);
+  background: #ffffff;
+  border-color: #1a3a52;
+  box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.08);
 }
 
 .form-input::placeholder {
-  color: #b0a8c0;
+  color: #999999;
 }
 
 /* Icon wrapper inside input */
@@ -174,7 +174,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #8b5fbf;
+  color: #1a3a52;
   font-size: 18px;
   pointer-events: none;
   z-index: 2;
@@ -186,14 +186,14 @@
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #8b5fbf;
+  color: #b8860b;
   font-size: 18px;
   z-index: 2;
   transition: color 0.2s ease;
 }
 
 .input-icon-right:hover {
-  color: #5a3aa8;
+  color: #1a3a52;
 }
 
 /* Password Input Container */
@@ -226,14 +226,14 @@
 .checkbox-wrapper input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #8b5fbf;
+  accent-color: #1a3a52;
   cursor: pointer;
   border-radius: 4px;
 }
 
 .checkbox-label {
   font-size: 14px;
-  color: #4a5568;
+  color: #1a3a52;
   font-weight: 500;
   cursor: pointer;
 }
@@ -241,14 +241,14 @@
 /* Links */
 .forgot-password {
   font-size: 14px;
-  color: #8b5fbf;
+  color: #1a3a52;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .forgot-password:hover {
-  color: #5a3aa8;
+  color: #b8860b;
   text-decoration: underline;
 }
 
@@ -256,17 +256,17 @@
 .submit-button {
   width: 100%;
   padding: 14px 24px;
-  background: linear-gradient(135deg, #8b5fbf 0%, #5a3aa8 100%);
+  background: linear-gradient(135deg, #1a3a52 0%, #2d5a7a 100%);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.5px;
   box-shadow: 
-    0 8px 20px rgba(90, 58, 168, 0.3),
+    0 8px 20px rgba(26, 58, 82, 0.3),
     0 0 1px rgba(255, 255, 255, 0.3) inset;
   font-family: var(--sans);
   text-transform: uppercase;
@@ -292,14 +292,14 @@
 .submit-button:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 12px 28px rgba(90, 58, 168, 0.4),
+    0 12px 28px rgba(26, 58, 82, 0.4),
     0 0 1px rgba(255, 255, 255, 0.4) inset;
 }
 
 .submit-button:active {
   transform: translateY(0);
   box-shadow: 
-    0 6px 16px rgba(90, 58, 168, 0.25),
+    0 6px 16px rgba(26, 58, 82, 0.25),
     0 0 1px rgba(255, 255, 255, 0.3) inset;
 }
 
@@ -315,7 +315,7 @@
   align-items: center;
   gap: 12px;
   margin: 28px 0;
-  color: #cbd5e0;
+  color: #cccccc;
 }
 
 .divider::before,
@@ -323,12 +323,12 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #e9d7ff;
+  background: #d4cfc9;
 }
 
 .divider-text {
   font-size: 13px;
-  color: #a0aec0;
+  color: #999999;
   font-weight: 500;
 }
 
@@ -345,16 +345,16 @@
   text-align: center;
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid #e9d7ff;
+  border-top: 1px solid #d4cfc9;
 }
 
 .form-footer-text {
   font-size: 14px;
-  color: #718096;
+  color: #666666;
 }
 
 .form-footer-link {
-  color: #8b5fbf;
+  color: #1a3a52;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
@@ -362,13 +362,13 @@
 }
 
 .form-footer-link:hover {
-  color: #5a3aa8;
+  color: #b8860b;
   text-decoration: underline;
 }
 
 /* Error Message */
 .error-message {
-  color: #e53e3e;
+  color: #c41e3a;
   font-size: 13px;
   margin-top: 6px;
   font-weight: 500;
@@ -376,7 +376,7 @@
 
 /* Success Message */
 .success-message {
-  color: #22863a;
+  color: #276839;
   font-size: 13px;
   margin-top: 6px;
   font-weight: 500;

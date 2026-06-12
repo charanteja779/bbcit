@@ -9,6 +9,28 @@ router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // Validate input
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate username - first letter of first and last name should be capital
+    const nameParts = username.trim().split(/\s+/);
+    if (nameParts.length < 2) {
+      return res.status(400).json({ message: "Please enter first and last name (e.g., John Doe)" });
+    }
+
+    const isValidName = nameParts.every(part => /^[A-Z]/.test(part));
+    if (!isValidName) {
+      return res.status(400).json({ message: "First and last name must start with capital letters (e.g., John Doe)" });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
     // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -23,9 +45,76 @@ router.post("/register", async (req, res) => {
     res.json({ message: "User registered successfully" });
 
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: "Registration failed", error: err.message });
   }
 });
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Generate reset token
+    const resetToken = jwt.sign({ id: user._id }, "resetSecret", { expiresIn: "10m" });
+
+    // Save reset token to database
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    res.json({
+      message: "Reset token generated successfully. Use it to reset your password.",
+      resetToken
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Forgot password failed", error: err.message });
+  }
+});
+
+// RESET PASSWORD
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, resetToken, newPassword } = req.body;
+
+    if (!email || !resetToken || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if reset token is valid and not expired
+    if (user.resetToken !== resetToken || !user.resetTokenExpiry || new Date() > user.resetTokenExpiry) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset token
+    user.password = hashedPassword;
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
+    await user.save();
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Password reset failed", error: err.message });
+  }
+});
+
 
 // LOGIN
 router.post("/login", async (req, res) => {
@@ -33,18 +122,26 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json("User not found");
+    if (!user) return res.status(400).json({ message: "User not found" });
 
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(400).json("Wrong password");
+    if (!validPassword) return res.status(400).json({ message: "Wrong password" });
 
     // token
     const token = jwt.sign({ id: user._id }, "secretKey");
 
-    res.json({ message: "Login successful", token });
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email
+      }
+    });
 
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: "Server error", error: err });
   }
 });
 

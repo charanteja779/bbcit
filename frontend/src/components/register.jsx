@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import heroImg from "../assets/college logo.png";
 import "../components/AuthForm.css";
+import "../styles/Register.css";
 
 function Register() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -12,7 +14,13 @@ function Register() {
   const [user, setUser] = useState({
     username: "",
     email: "",
-    password: ""
+    password: "",
+    role: "",
+    class: "",
+    course: "",
+    year: "",
+    department: "",
+    designation: "",
   });
 
   const handleChange = (e) => {
@@ -28,6 +36,33 @@ function Register() {
     setSuccess("");
 
     // Basic validation
+    if (!user.username || !user.email || !user.password) {
+      setError("Username, Email, and Password are required");
+      setLoading(false);
+      return;
+    }
+
+    // Validate username - first and last name with capital letters
+    const nameParts = user.username.trim().split(/\s+/);
+    if (nameParts.length < 2) {
+      setError("Please enter first and last name (e.g., John Doe)");
+      setLoading(false);
+      return;
+    }
+
+    const isValidName = nameParts.every(part => /^[A-Z]/.test(part));
+    if (!isValidName) {
+      setError("First and last name must start with capital letters (e.g., John Doe)");
+      setLoading(false);
+      return;
+    }
+
+    if (!/^[A-Za-z0-9_.+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-.]+$/.test(user.email)) {
+      setError("Please enter a valid email address");
+      setLoading(false);
+      return;
+    }
+
     if (user.password.length < 6) {
       setError("Password must be at least 6 characters long");
       setLoading(false);
@@ -40,13 +75,23 @@ function Register() {
         user
       );
 
-      setSuccess(res.data.message || "Registration successful! You can now login.");
-      setUser({ username: "", email: "", password: "" });
+      setSuccess(res.data.message || "Registration successful! Redirecting to login...");
+      setUser({
+        username: "",
+        email: "",
+        password: "",
+        role: "student",
+        class: "",
+        course: "",
+        year: "",
+        department: "",
+        designation: "",
+      });
       setLoading(false);
-      
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        window.location.href = "/";
+        navigate("/");
       }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
@@ -61,59 +106,69 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        {/* College Logo */}
-        <div style={{
-          textAlign: "center",
-          marginBottom: "28px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "12px"
-        }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "28px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
           <img
             src={heroImg}
             alt="BBCIT Logo"
             style={{
-              width: "80px",
-              height: "80px",
+              width: "120px",
+              height: "120px",
               borderRadius: "12px",
               filter: "drop-shadow(0 4px 12px rgba(90, 58, 168, 0.15))",
-              transition: "transform 0.3s ease"
+              transition: "transform 0.3s ease",
             }}
             className="logo-img"
           />
-          <div style={{
-            fontSize: "13px",
-            fontWeight: "600",
-            color: "#5a3aa8",
-            letterSpacing: "0.5px",
-            textTransform: "uppercase"
-          }}>
-           BANKATLAL BADRUKA COLLEGE FOR INFORMATION AND TECHNOLOGY
+          <div
+            style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#5a3aa8",
+              letterSpacing: "0.5px",
+              textTransform: "uppercase",
+            }}
+          >
+            BANKATLAL BADRUKA COLLEGE FOR INFORMATION AND TECHNOLOGY
           </div>
         </div>
 
         {/* Tab Switcher */}
         <div className="tab-switcher">
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <button 
-              type="button" 
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <button
+              type="button"
               className="tab-button"
-              style={{ color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', fontWeight: '600', padding: '8px 4px', transition: 'color 0.3s ease' }}
-              onMouseEnter={(e) => e.target.style.color = '#5a3aa8'}
-              onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
+              style={{
+                color: "#9ca3af",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "16px",
+                fontWeight: "600",
+                padding: "8px 4px",
+                transition: "color 0.3s ease",
+              }}
+              onMouseEnter={(e) => (e.target.style.color = "#5a3aa8")}
+              onMouseLeave={(e) => (e.target.style.color = "#9ca3af")}
             >
               Login
             </button>
           </Link>
-          <button className="tab-button active">
-            Register
-          </button>
+          <button className="tab-button active">Register</button>
         </div>
 
         {/* Heading */}
         <h1 className="auth-heading">Create Account</h1>
-        <p className="auth-subtitle">Join us to get started</p>
+        <p className="auth-subtitle">Join BBCIT and get started</p>
 
         {/* Error Message */}
         {error && <div className="error-message">{error}</div>}
@@ -125,25 +180,28 @@ function Register() {
         <form onSubmit={handleSubmit}>
           {/* Username Field */}
           <div className="form-group">
-            <label className="form-label">Username</label>
-            <div style={{ position: 'relative' }}>
+            <label className="form-label">Full Name</label>
+            <div style={{ position: "relative" }}>
               <div className="input-icon">👤</div>
               <input
                 type="text"
                 name="username"
                 className="form-input"
-                placeholder="Choose a username"
+                placeholder="e.g., John Doe"
                 value={user.username}
                 onChange={handleChange}
                 required
               />
             </div>
+            <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>
+              💡 First and last name with capital letters
+            </p>
           </div>
 
           {/* Email Field */}
           <div className="form-group">
             <label className="form-label">Email Address</label>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: "relative" }}>
               <div className="input-icon">✉️</div>
               <input
                 type="email"
@@ -175,20 +233,144 @@ function Register() {
                 type="button"
                 className="input-icon-right"
                 onClick={togglePasswordVisibility}
-                style={{ background: 'none', border: 'none' }}
+                style={{ background: "none", border: "none" }}
               >
                 {showPassword ? "👁️" : "👁️‍🗨️"}
               </button>
             </div>
           </div>
 
+          {/* Role Selection */}
+          <div className="form-group">
+            <label className="form-label">Role</label>
+            <div style={{ position: "relative" }}>
+              <select
+                name="role"
+                className="form-input"
+                value={user.role}
+                onChange={handleChange}
+              >
+                <option value="student">👨‍🎓 Student</option>
+                <option value="faculty">👨‍🏫 Faculty</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Conditional Student Fields */}
+          {user.role === "student" && (
+            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e9d7ff" }}>
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#5a3aa8",
+                  margin: "0 0 16px 0",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Academic Information
+              </p>
+
+              <div className="form-group">
+                <label className="form-label">Class</label>
+                <div style={{ position: "relative" }}>
+                  <div className="input-icon">🏫</div>
+                  <input
+                    type="text"
+                    name="class"
+                    className="form-input"
+                    placeholder="e.g., BCA-A"
+                    value={user.class}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Course</label>
+                <div style={{ position: "relative" }}>
+                  <div className="input-icon">📚</div>
+                  <input
+                    type="text"
+                    name="course"
+                    className="form-input"
+                    placeholder="e.g., Bachelor of Computer Applications"
+                    value={user.course}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Year</label>
+                <div style={{ position: "relative" }}>
+                  <div className="input-icon">📅</div>
+                  <input
+                    type="text"
+                    name="year"
+                    className="form-input"
+                    placeholder="e.g., 1st Year"
+                    value={user.year}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Conditional Faculty Fields */}
+          {user.role === "faculty" && (
+            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e9d7ff" }}>
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#5a3aa8",
+                  margin: "0 0 16px 0",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Professional Information
+              </p>
+
+              <div className="form-group">
+                <label className="form-label">Department</label>
+                <div style={{ position: "relative" }}>
+                  <div className="input-icon">🏛️</div>
+                  <input
+                    type="text"
+                    name="department"
+                    className="form-input"
+                    placeholder="e.g., Computer Science"
+                    value={user.department}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Designation</label>
+                <div style={{ position: "relative" }}>
+                  <div className="input-icon">👔</div>
+                  <input
+                    type="text"
+                    name="designation"
+                    className="form-input"
+                    placeholder="e.g., Assistant Professor"
+                    value={user.designation}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Terms Checkbox */}
           <div className="form-row">
             <label className="checkbox-wrapper">
-              <input
-                type="checkbox"
-                required
-              />
+              <input type="checkbox" required />
               <span className="checkbox-label">I agree to the terms and conditions</span>
             </label>
           </div>
@@ -196,17 +378,17 @@ function Register() {
           {/* Submit Button */}
           <button
             type="submit"
-            className={`submit-button ${loading ? 'loading' : ''}`}
+            className={`submit-button ${loading ? "loading" : ""}`}
             disabled={loading}
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
         {/* Footer */}
         <div className="form-footer">
           <span className="form-footer-text">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link to="/" className="form-footer-link">
               Sign in
             </Link>

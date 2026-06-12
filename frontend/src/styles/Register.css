@@ -1,0 +1,13 @@
+/* Register Page Specific Styles - Classical College Theme */
+
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.register-header {
+  flex-shrink: 0;
+  padding: 20px;
+  background: transparent;
+}

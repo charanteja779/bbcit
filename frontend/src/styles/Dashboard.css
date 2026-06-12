@@ -1,0 +1,47 @@
+/* Dashboard Page Layout */
+.dashboard-layout {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Optional: Add a different background pattern for dashboard */
+.dashboard-layout::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-layout > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.15));
+}
+
+.dashboard-content {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
