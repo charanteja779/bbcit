@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { Link } from "react-router-dom";
 import heroImg from "../assets/college logo.png";
 import "../components/AuthForm.css";
@@ -25,8 +25,8 @@ function ForgotPassword() {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
+      const res = await api.post(
+        "/api/auth/forgot-password",
         { email }
       );
 
@@ -188,8 +188,8 @@ function ResetPasswordForm({ email, resetToken }) {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/reset-password",
+      const res = await api.post(
+        "/api/auth/reset-password",
         {
           email,
           resetToken,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import heroImg from "../assets/college logo.png";
 import "../components/AuthForm.css";
@@ -102,7 +102,7 @@ function Register() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
+      const res = await api.post("/api/auth/register", {
         username: formData.username,
         email: formData.email,
         password: formData.password,

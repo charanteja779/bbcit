@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useNavigate, Link } from "react-router-dom";
 import heroImg from "../assets/college logo.png";
 import { normalizeUser } from "../utils/attendanceUtils";
@@ -29,8 +29,8 @@ function Login() {
     setError("");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
+      const res = await api.post(
+        "/api/auth/login",
         user
       );
       
