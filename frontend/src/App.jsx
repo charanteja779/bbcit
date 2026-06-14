@@ -10,11 +10,12 @@ import DashboardLayout from "./components/DashboardLayout";
 import "./App.css";
 import "./styles/LoginRegister.css";
 import "./styles/Dashboard.css";
+import { normalizeUser } from "./utils/attendanceUtils";
 
 function AppLayout() {
   const location = useLocation();
   const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
+  const user = userString ? normalizeUser(JSON.parse(userString)) : null;
   const isAuthenticated = !!user;
   const isAuthPage = location.pathname === "/" || location.pathname === "/register" || location.pathname === "/forgot-password";
 
@@ -89,69 +90,25 @@ function AppLayout() {
             )
           }
         />
+        <Route
+          path="/dashboard/:section"
+          element={
+            isAuthenticated ? (
+              <DashboardLayout
+                user={user}
+                role={user?.role || "student"}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
 
         {/* Attendance Route */}
         <Route
           path="/attendance"
-          element={
-            isAuthenticated && user?.role === "faculty" ? (
-              <DashboardLayout
-                user={user}
-                role="faculty"
-                onLogout={handleLogout}
-              />
-            ) : (
-              <Navigate to={isAuthenticated ? "/dashboard/modern" : "/"} />
-            )
-          }
-        />
-
-        {/* Gallery Route */}
-        <Route
-          path="/gallery"
-          element={
-            isAuthenticated ? (
-              <DashboardLayout
-                user={user}
-                role={user?.role || "student"}
-                onLogout={handleLogout}
-              />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-
-        {/* Photos Route */}
-        <Route
-          path="/photos"
-          element={
-            isAuthenticated ? (
-              <DashboardLayout
-                user={user}
-                role={user?.role || "student"}
-                onLogout={handleLogout}
-              />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-
-        {/* Profile Route */}
-        <Route
-          path="/profile"
-          element={
-            isAuthenticated ? (
-              <DashboardLayout
-                user={user}
-                role={user?.role || "student"}
-                onLogout={handleLogout}
-              />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
+          element={<Navigate to={isAuthenticated ? "/dashboard/attendance" : "/"} />}
         />
 
         {/* Logout */}

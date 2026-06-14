@@ -1,18 +1,49 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
+const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
+const formatUserResponse = (user) => ({
+  id: user._id,
+  name: user.username,
+  username: user.username,
+  email: user.email,
+  role: user.role || "student",
+  rollNo: user.rollNo || "",
+  rollNumber: user.rollNo || "",
+  course: user.course || "",
+  year: user.year || "",
+  section: user.section || "",
+  className: user.section || "",
+  department: user.department || "",
+  subject: user.subject || "",
+  facultyId: user._id,
+});
 
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const {
+      username,
+      email,
+      password,
+      role,
+      rollNo,
+      course,
+      year,
+      class: className,
+      section,
+      department,
+      subject,
+    } = req.body;
 
     // Validate input
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    const normalizedRole = role === "faculty" ? "faculty" : "student";
 
     // Validate username - first letter of first and last name should be capital
     const nameParts = username.trim().split(/\s+/);
@@ -37,7 +68,19 @@ router.post("/register", async (req, res) => {
     const newUser = new User({
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: normalizedRole,
+      rollNo: normalizedRole === "student" ? (rollNo || "").trim() : "",
+      course: normalizedRole === "student" ? (course || "").trim() : "",
+      year: normalizedRole === "student" ? (year || "").trim() : "",
+      section:
+        normalizedRole === "student"
+          ? (section || className || "").trim()
+          : "",
+      department:
+        normalizedRole === "faculty" ? (department || "").trim() : "",
+      subject:
+        normalizedRole === "faculty" ? (subject || "").trim() : "",
     });
 
     await newUser.save();
@@ -133,15 +176,22 @@ router.post("/login", async (req, res) => {
     res.json({
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
-      }
+      user: formatUserResponse(user),
     });
 
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
+    console.error("Login error:", err);
+
+    if (err.name === "MongooseError" || err.message?.includes("buffering timed out")) {
+      return res.status(503).json({
+        message: "Database is not connected. Please start MongoDB and try again.",
+      });
+    }
+
+    res.status(500).json({
+      message: "Server error",
+      error: err.message || "Unknown error",
+    });
   }
 });
 

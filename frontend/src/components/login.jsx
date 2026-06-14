@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import heroImg from "../assets/college logo.png";
+import { normalizeUser } from "../utils/attendanceUtils";
 import "../components/AuthForm.css";
 import "../styles/Login.css";
 
@@ -33,9 +34,9 @@ function Login() {
         user
       );
       
-      // Store token and user data
+      // Store token and normalized user data
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("user", JSON.stringify(normalizeUser(res.data.user)));
       
       if (rememberMe) {
         localStorage.setItem("email", user.email);
@@ -43,7 +44,13 @@ function Login() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      const message =
+        err.response?.data?.message ||
+        (err.response?.status === 503
+          ? "Database is not connected. Please start MongoDB and restart the backend."
+          : "Login failed. Please try again.");
+
+      setError(message);
       setLoading(false);
     }
   };

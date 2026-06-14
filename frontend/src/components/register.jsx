@@ -11,21 +11,47 @@ function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState({
+  const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    role: "",
-    class: "",
+    role: "student",
+    rollNo: "",
+    section: "",
     course: "",
     year: "",
     department: "",
-    designation: "",
+    subject: "",
   });
+
+  const selectedRole = String(formData.role || "").toLowerCase();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: value,
+      };
+
+      if (name === "role") {
+        const nextRole = String(value || "").toLowerCase();
+
+        if (nextRole === "student") {
+          next.department = "";
+          next.subject = "";
+        } else if (nextRole === "faculty") {
+          next.rollNo = "";
+          next.section = "";
+          next.course = "";
+          next.year = "";
+        }
+      }
+
+      return next;
+    });
+
     setError("");
   };
 
@@ -35,66 +61,85 @@ function Register() {
     setError("");
     setSuccess("");
 
-    // Basic validation
-    if (!user.username || !user.email || !user.password) {
+    if (!formData.username || !formData.email || !formData.password) {
       setError("Username, Email, and Password are required");
       setLoading(false);
       return;
     }
 
-    // Validate username - first and last name with capital letters
-    const nameParts = user.username.trim().split(/\s+/);
+    const nameParts = formData.username.trim().split(/\s+/);
     if (nameParts.length < 2) {
       setError("Please enter first and last name (e.g., John Doe)");
       setLoading(false);
       return;
     }
 
-    const isValidName = nameParts.every(part => /^[A-Z]/.test(part));
+    const isValidName = nameParts.every((part) => /^[A-Z]/.test(part));
     if (!isValidName) {
-      setError("First and last name must start with capital letters (e.g., John Doe)");
+      setError(
+        "First and last name must start with capital letters (e.g., John Doe)"
+      );
       setLoading(false);
       return;
     }
 
-    if (!/^[A-Za-z0-9_.+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-.]+$/.test(user.email)) {
+    if (!/^[A-Za-z0-9_.+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-.]+$/.test(formData.email)) {
       setError("Please enter a valid email address");
       setLoading(false);
       return;
     }
 
-    if (user.password.length < 6) {
+    if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long");
       setLoading(false);
       return;
     }
 
+    if (selectedRole === "student" && !formData.rollNo.trim()) {
+      setError("Roll number is required for students");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        user
+      const res = await axios.post("http://localhost:5000/api/auth/register", {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        role: selectedRole,
+        rollNo: formData.rollNo,
+        course: formData.course,
+        year: formData.year,
+        section: formData.section,
+        department: formData.department,
+        subject: formData.subject,
+      });
+
+      setSuccess(
+        res.data.message || "Registration successful! Redirecting to login..."
       );
 
-      setSuccess(res.data.message || "Registration successful! Redirecting to login...");
-      setUser({
+      setFormData({
         username: "",
         email: "",
         password: "",
         role: "student",
-        class: "",
+        rollNo: "",
+        section: "",
         course: "",
         year: "",
         department: "",
-        designation: "",
+        subject: "",
       });
       setLoading(false);
 
-      // Redirect to login after 2 seconds
       setTimeout(() => {
         navigate("/");
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
       setLoading(false);
     }
   };
@@ -141,7 +186,6 @@ function Register() {
           </div>
         </div>
 
-        {/* Tab Switcher */}
         <div className="tab-switcher">
           <Link to="/" style={{ textDecoration: "none" }}>
             <button
@@ -166,19 +210,13 @@ function Register() {
           <button className="tab-button active">Register</button>
         </div>
 
-        {/* Heading */}
         <h1 className="auth-heading">Create Account</h1>
         <p className="auth-subtitle">Join BBCIT and get started</p>
 
-        {/* Error Message */}
         {error && <div className="error-message">{error}</div>}
-
-        {/* Success Message */}
         {success && <div className="success-message">{success}</div>}
 
-        {/* Form */}
         <form onSubmit={handleSubmit}>
-          {/* Username Field */}
           <div className="form-group">
             <label className="form-label">Full Name</label>
             <div style={{ position: "relative" }}>
@@ -188,7 +226,7 @@ function Register() {
                 name="username"
                 className="form-input"
                 placeholder="e.g., John Doe"
-                value={user.username}
+                value={formData.username}
                 onChange={handleChange}
                 required
               />
@@ -198,7 +236,6 @@ function Register() {
             </p>
           </div>
 
-          {/* Email Field */}
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div style={{ position: "relative" }}>
@@ -208,14 +245,13 @@ function Register() {
                 name="email"
                 className="form-input"
                 placeholder="your@email.com"
-                value={user.email}
+                value={formData.email}
                 onChange={handleChange}
                 required
               />
             </div>
           </div>
 
-          {/* Password Field */}
           <div className="form-group">
             <label className="form-label">Password</label>
             <div className="password-input-wrapper">
@@ -225,7 +261,7 @@ function Register() {
                 name="password"
                 className="form-input"
                 placeholder="Create a strong password"
-                value={user.password}
+                value={formData.password}
                 onChange={handleChange}
                 required
               />
@@ -240,14 +276,13 @@ function Register() {
             </div>
           </div>
 
-          {/* Role Selection */}
           <div className="form-group">
             <label className="form-label">Role</label>
             <div style={{ position: "relative" }}>
               <select
                 name="role"
                 className="form-input"
-                value={user.role}
+                value={formData.role}
                 onChange={handleChange}
               >
                 <option value="student">👨‍🎓 Student</option>
@@ -256,9 +291,14 @@ function Register() {
             </div>
           </div>
 
-          {/* Conditional Student Fields */}
-          {user.role === "student" && (
-            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e9d7ff" }}>
+          {selectedRole === "student" && (
+            <div
+              style={{
+                marginTop: "24px",
+                paddingTop: "24px",
+                borderTop: "1px solid #e9d7ff",
+              }}
+            >
               <p
                 style={{
                   fontSize: "13px",
@@ -273,15 +313,30 @@ function Register() {
               </p>
 
               <div className="form-group">
-                <label className="form-label">Class</label>
+                <label className="form-label">Roll Number</label>
+                <div style={{ position: "relative" }}>
+                  <div className="input-icon">🎓</div>
+                  <input
+                    type="text"
+                    name="rollNo"
+                    className="form-input"
+                    placeholder="e.g., 21BD5A0526"
+                    value={formData.rollNo}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Class / Section</label>
                 <div style={{ position: "relative" }}>
                   <div className="input-icon">🏫</div>
                   <input
                     type="text"
-                    name="class"
+                    name="section"
                     className="form-input"
-                    placeholder="e.g., BCA-A"
-                    value={user.class}
+                    placeholder="e.g., B.sc-A"
+                    value={formData.section}
                     onChange={handleChange}
                   />
                 </div>
@@ -295,8 +350,8 @@ function Register() {
                     type="text"
                     name="course"
                     className="form-input"
-                    placeholder="e.g., Bachelor of Computer Applications"
-                    value={user.course}
+                    placeholder="e.g., Bachelor of Computer Science"
+                    value={formData.course}
                     onChange={handleChange}
                   />
                 </div>
@@ -311,7 +366,7 @@ function Register() {
                     name="year"
                     className="form-input"
                     placeholder="e.g., 1st Year"
-                    value={user.year}
+                    value={formData.year}
                     onChange={handleChange}
                   />
                 </div>
@@ -319,9 +374,14 @@ function Register() {
             </div>
           )}
 
-          {/* Conditional Faculty Fields */}
-          {user.role === "faculty" && (
-            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e9d7ff" }}>
+          {selectedRole === "faculty" && (
+            <div
+              style={{
+                marginTop: "24px",
+                paddingTop: "24px",
+                borderTop: "1px solid #e9d7ff",
+              }}
+            >
               <p
                 style={{
                   fontSize: "13px",
@@ -344,22 +404,7 @@ function Register() {
                     name="department"
                     className="form-input"
                     placeholder="e.g., Computer Science"
-                    value={user.department}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Designation</label>
-                <div style={{ position: "relative" }}>
-                  <div className="input-icon">👔</div>
-                  <input
-                    type="text"
-                    name="designation"
-                    className="form-input"
-                    placeholder="e.g., Assistant Professor"
-                    value={user.designation}
+                    value={formData.department}
                     onChange={handleChange}
                   />
                 </div>
@@ -367,15 +412,15 @@ function Register() {
             </div>
           )}
 
-          {/* Terms Checkbox */}
           <div className="form-row">
             <label className="checkbox-wrapper">
               <input type="checkbox" required />
-              <span className="checkbox-label">I agree to the terms and conditions</span>
+              <span className="checkbox-label">
+                I agree to the terms and conditions
+              </span>
             </label>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className={`submit-button ${loading ? "loading" : ""}`}
@@ -385,7 +430,6 @@ function Register() {
           </button>
         </form>
 
-        {/* Footer */}
         <div className="form-footer">
           <span className="form-footer-text">
             Already have an account?{" "}

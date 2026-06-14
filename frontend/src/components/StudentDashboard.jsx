@@ -1,236 +1,441 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-const user = JSON.parse(localStorage.getItem("user"));
-
+import { BarChart3, FileText, Loader2 } from "lucide-react";
 import {
-    BarChart3,
-    Calendar,
-    Image,
-    FileText,
-    ArrowRight,
-} from "lucide-react";
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
-import StatCard from "./StatCard";
+import { normalizeUser, normalizeRollNo } from "../utils/attendanceUtils";
+import { attendanceAPI } from "../services/api";
 
-const StudentDashboard = ({ user = {} }) => {
-    const [attendanceData, setAttendanceData] = useState([]);
-    const [stats, setStats] = useState({
-        attendance: 85,
-        events: 12,
-        photos: 45,
-        notices: 3,
-    });
-    const [recentEvents, setRecentEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
+const StudentDashboard = ({ user = {}, section = "dashboard" }) => {
+  const loggedInUser = useMemo(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+      return normalizeUser({ ...storedUser, ...user });
+    } catch (error) {
+      return normalizeUser(user);
+    }
+  }, [user]);
 
-    useEffect(() => {
-        // Simulate API call - replace with actual API
-        const timer = setTimeout(() => {
-            // Mock attendance data
-            setAttendanceData([
-                { date: "Jan", attendance: 80 },
-                { date: "Feb", attendance: 82 },
-                { date: "Mar", attendance: 85 },
-                { date: "Apr", attendance: 88 },
-                { date: "May", attendance: 87 },
-                { date: "Jun", attendance: 85 },
-            ]);
+  const studentName = loggedInUser.name || "Student";
+  const studentRollNo = loggedInUser.rollNo || loggedInUser.rollNumber || "";
+  const studentCourse = loggedInUser.course || "";
+  const studentYear = loggedInUser.year || "";
+  const studentSection =
+    loggedInUser.section || loggedInUser.className || "";
 
-            // Mock recent events
-            setRecentEvents([
-                {
-                    id: 1,
-                    name: "Earth day",
-                    date: "April 22, 2026",
-                    location: "Seminar Hall",
-                },
-                {
-                    id: 2,
-                    name: "ABACUS",
-                    date: "Febrauary 21, 2026",
-                    location: "Seminar Hall",
-                },
-                {
-                    id: 3,
-                    name: "Rythmic Fusion",
-                    date: "March 21, 2026",
-                    location: "Seminar Hall",
-                },
-            ]);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [subjectWiseStatus, setSubjectWiseStatus] = useState([]);
+  const [stats, setStats] = useState({
+    attendance: 0,
+    totalClasses: 0,
+    presentClasses: 0,
+    absentClasses: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-            setLoading(false);
-        }, 500);
+  const loadStudentAttendance = useCallback(async () => {
+    const rollNo = normalizeRollNo(studentRollNo);
 
-        return () => clearTimeout(timer);
-    }, []);
+    if (!rollNo) {
+      setAttendanceRecords([]);
+      setAttendanceData([]);
+      setSubjectWiseStatus([]);
+      setStats({
+        attendance: 0,
+        totalClasses: 0,
+        presentClasses: 0,
+        absentClasses: 0,
+      });
+      setError("Roll number not found. Please update your profile.");
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
+    setError("");
+
+    try {
+      const [attendanceRes, graphRes] = await Promise.all([
+        attendanceAPI.getStudentAttendance(rollNo),
+        attendanceAPI.getStudentAttendanceGraph(rollNo),
+      ]);
+
+      const records = (attendanceRes.data.records || [])
+        .map((record) => {
+          const isPresent =
+            String(record.status || "").toLowerCase() === "present";
+
+          return {
+            id: record.id,
+            date: record.date,
+            section: record.section || record.className || studentSection,
+            subject: record.subject || "",
+            isPresent,
+            status: isPresent ? "Present" : "Absent",
+          };
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const totalClasses = records.length;
+      const presentClasses = records.filter((record) => record.isPresent).length;
+      const absentClasses = totalClasses - presentClasses;
+      const attendancePercentage =
+        totalClasses > 0
+          ? Math.round((presentClasses / totalClasses) * 100)
+          : 0;
+
+      const chartData = (graphRes.data || []).map((entry) => ({
+        date: new Date(entry.date).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+        }),
+        attendance: entry.attendancePercentage,
+      }));
+
+      const latestBySubject = new Map();
+      [...records].reverse().forEach((record) => {
+        if (record.subject && !latestBySubject.has(record.subject)) {
+          latestBySubject.set(record.subject, record.status);
+        }
+      });
+
+      setAttendanceRecords([...records].reverse());
+      setAttendanceData(chartData);
+      setSubjectWiseStatus(
+        Array.from(latestBySubject.entries()).map(([subject, status]) => ({
+          subject,
+          status,
+        }))
+      );
+      setStats({
+        attendance: attendancePercentage,
+        totalClasses,
+        presentClasses,
+        absentClasses,
+      });
+    } catch (loadError) {
+      console.error("Attendance loading error:", loadError);
+      setError(
+        loadError.response?.data?.message ||
+          "Failed to load attendance data."
+      );
+      setAttendanceRecords([]);
+      setAttendanceData([]);
+      setSubjectWiseStatus([]);
+      setStats({
+        attendance: 0,
+        totalClasses: 0,
+        presentClasses: 0,
+        absentClasses: 0,
+      });
+    }
+
+    setLoading(false);
+  }, [studentRollNo, studentSection]);
+
+  useEffect(() => {
+    loadStudentAttendance();
+  }, [loadStudentAttendance]);
+
+  if (loading) {
     return (
-        <div className="space-y-8">
-            {/* Welcome Card */}
-            <motion.div
-                className="bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 rounded-xl shadow-lg p-8 text-white overflow-hidden relative"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
-                <div className="relative z-10">
-                    <h1 className="text-4xl font-bold mb-2">
-                        Welcome back, {user?.username || "Student"}! 👋
-                    </h1>
-                    <p className="text-lg opacity-90">
-                        Here's your academic performance at a glance
-                    </p>
-                </div>
-                <div className="absolute top-0 right-0 opacity-10">
-                    <div className="w-40 h-40 bg-white rounded-full blur-3xl" />
-                </div>
-            </motion.div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Attendance"
-                    value={`${stats.attendance}%`}
-                    icon={Calendar}
-                    trend={5}
-                    color="blue"
-                />
-                <StatCard
-                    title="Events Attended"
-                    value={stats.events}
-                    icon={BarChart3}
-                    trend={2}
-                    color="purple"
-                />
-                <StatCard
-                    title="Photos"
-                    value={stats.photos}
-                    icon={Image}
-                    trend={8}
-                    color="green"
-                />
-                <StatCard
-                    title="Notices"
-                    value={stats.notices}
-                    icon={FileText}
-                    trend={-1}
-                    color="orange"
-                />
-            </div>
-
-            {/* Attendance Chart */}
-            <motion.div
-                className="bg-white rounded-xl shadow-md p-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-            >
-                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <BarChart3 size={24} className="text-purple-500" />
-                    Attendance Overview
-                </h2>
-                {!loading && attendanceData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={attendanceData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                            <XAxis dataKey="date" stroke="#999" />
-                            <YAxis stroke="#999" />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: "#f8f9fa",
-                                    border: "1px solid #e0e0e0",
-                                    borderRadius: "8px",
-                                }}
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="attendance"
-                                stroke="#8b5cf6"
-                                strokeWidth={3}
-                                dot={{ fill: "#8b5cf6", r: 6 }}
-                                activeDot={{ r: 8 }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                ) : (
-                    <div className="h-80 flex items-center justify-center text-gray-500">
-                        Loading chart...
-                    </div>
-                )}
-            </motion.div>
-
-            {/* Recent Events */}
-            <motion.div
-                className="bg-white rounded-xl shadow-md p-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-            >
-                <h2 className="text-xl font-bold text-gray-800 mb-6">Recent Events</h2>
-                <div className="space-y-4">
-                    {recentEvents.map((event, idx) => (
-                        <motion.div
-                            key={event.id}
-                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all cursor-pointer"
-                            whileHover={{ translateX: 8 }}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                        >
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">{event.name}</h3>
-                                    <p className="text-sm text-gray-600 mt-1">📅 {event.date}</p>
-                                    <p className="text-sm text-gray-600">📍 {event.location}</p>
-                                </div>
-                                <ArrowRight size={20} className="text-purple-500" />
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </motion.div>
-
-            {/* Quick Actions */}
-            <motion.div
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-            >
-                <button className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Calendar size={28} className="text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">View Attendance</h3>
-                    <p className="text-sm text-gray-600">Check your attendance records</p>
-                </button>
-
-                <button className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <BarChart3 size={28} className="text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">View Events</h3>
-                    <p className="text-sm text-gray-600">Explore upcoming events</p>
-                </button>
-
-                <button className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Image size={28} className="text-green-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">View Photos</h3>
-                    <p className="text-sm text-gray-600">Browse event photos</p>
-                </button>
-            </motion.div>
-
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+        <div className="text-lg font-medium text-gray-600">
+          Loading dashboard data...
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="space-y-8">
+      <motion.div
+        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
+            Welcome, {studentName}!
+          </h1>
+
+          <p className="text-slate-500 font-medium">
+            Your attendance is calculated from faculty submitted records.
+          </p>
+        </div>
+      </motion.div>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+          <p className="text-red-700 font-medium">{error}</p>
+        </div>
+      )}
+
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-4 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+      >
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Roll Number
+          </p>
+
+          <h3 className="text-2xl font-bold text-slate-900">
+            {studentRollNo || "—"}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Course
+          </p>
+
+          <h3 className="text-2xl font-bold text-slate-900">
+            {studentCourse || "—"}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Year
+          </p>
+
+          <h3 className="text-2xl font-bold text-slate-900">
+            {studentYear || "—"}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Section
+          </p>
+
+          <h3 className="text-2xl font-bold text-slate-900">
+            {studentSection || "—"}
+          </h3>
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-4 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Attendance
+          </p>
+
+          <h3 className="text-3xl font-bold text-slate-900">
+            {stats.attendance}%
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Total Classes
+          </p>
+
+          <h3 className="text-3xl font-bold text-slate-900">
+            {stats.totalClasses}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Present
+          </p>
+
+          <h3 className="text-3xl font-bold text-green-600">
+            {stats.presentClasses}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <p className="text-slate-500 text-sm font-medium mb-1">
+            Absent
+          </p>
+
+          <h3 className="text-3xl font-bold text-red-600">
+            {stats.absentClasses}
+          </h3>
+        </div>
+      </motion.div>
+
+      {section === "attendance" && (
+        <>
+          {subjectWiseStatus.length > 0 && (
+            <motion.div
+          className="bg-white rounded-xl shadow-md p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            Subject-wise Status
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {subjectWiseStatus.map((item) => (
+              <div
+                key={item.subject}
+                className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+              >
+                <span className="font-medium text-gray-800">{item.subject}</span>
+                <span
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                    item.status === "Present"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {item.status}
+                </span>
+              </div>
+            ))}
+          </div>
+            </motion.div>
+          )}
+
+          {section === "dashboard" && (
+            <motion.div
+        className="bg-white rounded-xl shadow-md p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-800">
+            Attendance Chart
+          </h2>
+
+          <BarChart3 size={26} className="text-purple-600" />
+        </div>
+
+        {attendanceData.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">
+            No attendance data found.
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={attendanceData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis domain={[0, 100]} />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="attendance"
+                stroke="#8b5cf6"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+              </motion.div>
+          )}
+
+          {section === "attendance" && (
+            <motion.div
+        className="bg-white rounded-xl shadow-md p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-800">
+            Attendance Records
+          </h2>
+
+          <FileText size={26} className="text-purple-600" />
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Date
+                </th>
+
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  Section
+                </th>
+
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  Subject
+                </th>
+
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  Status
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {attendanceRecords.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-4 py-6 text-center text-gray-500"
+                  >
+                    No records found for this student.
+                  </td>
+                </tr>
+              ) : (
+                attendanceRecords.map((record, index) => (
+                  <tr
+                    key={`${record.id}-${index}`}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                      {new Date(record.date).toLocaleDateString("en-IN")}
+                    </td>
+
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                      {record.section}
+                    </td>
+
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                      {record.subject}
+                    </td>
+
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                          record.isPresent
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {record.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+            </motion.div>
+        )}
+        </>
+      )}
+    </div>
+  );
 };
 
 export default StudentDashboard;

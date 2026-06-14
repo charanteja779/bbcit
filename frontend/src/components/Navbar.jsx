@@ -1,90 +1,114 @@
 import React, { useState } from "react";
-import { Bell, User, LogOut, Menu, X } from "lucide-react";
+import { Bell, User, LogOut, GraduationCap, LayoutDashboard, ClipboardList, ImagePlus } from "lucide-react";
 
 const Navbar = ({
   username = "Guest",
   role = "Student",
+  activeSection = "dashboard",
   onLogout,
-  onToggleSidebar,
-  sidebarOpen,
   notifications = 0,
+  onNavigate,
 }) => {
   const [profileOpen, setProfileOpen] = useState(false);
 
+  const menuItems = [
+    { name: "Dashboard", key: "dashboard", icon: LayoutDashboard },
+    { name: "Attendance", key: "attendance", icon: ClipboardList },
+    { name: "Event Gallery", key: "gallery", icon: ImagePlus },
+  ];
+
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-40">
-      <div className="flex items-center justify-between px-4 py-3 lg:px-8">
-        {/* Left: Logo + Menu Toggle */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onToggleSidebar}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            {sidebarOpen ? (
-              <X size={24} className="text-gray-700" />
-            ) : (
-              <Menu size={24} className="text-gray-700" />
-            )}
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">📊</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-800">Student Dashboard</h1>
-            </div>
+    <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
+      <div className="flex items-center justify-between px-4 py-3 lg:px-8 max-w-7xl mx-auto">
+        {/* Left: Logo */}
+        <div className="flex items-center gap-3">
+          <div className="text-indigo-600">
+            <GraduationCap size={28} strokeWidth={2.5} />
           </div>
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-none">BBCIT</h1>
+            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-widest mt-0.5">Dashboard</p>
+          </div>
+        </div>
+
+        {/* Center: Navigation Menu */}
+        <div className="hidden md:flex items-center gap-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => onNavigate(item.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive 
+                    ? "bg-slate-100 text-slate-900" 
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                }`}
+              >
+                <Icon size={16} className={isActive ? "text-indigo-600" : "text-slate-400"} />
+                {item.name}
+              </button>
+            );
+          })}
         </div>
 
         {/* Right: Notifications + Profile */}
         <div className="flex items-center gap-6">
-          {/* Notifications */}
-          <div className="relative">
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <Bell size={20} className="text-gray-600" />
-              {notifications > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {notifications > 9 ? "9+" : notifications}
-                </span>
-              )}
-            </button>
-          </div>
+
 
           {/* Profile Dropdown */}
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              type="button"
+              className="flex items-center gap-3 p-1.5 pr-3 hover:bg-slate-50 rounded-full border border-transparent hover:border-slate-200 transition-all"
             >
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                <User size={18} className="text-white" />
+              <div className="w-8 h-8 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center">
+                <User size={16} className="text-slate-600" />
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-semibold text-gray-800">{username}</p>
-                <p className="text-xs text-gray-500">{role}</p>
+                <p className="text-sm font-semibold text-slate-800 leading-none">{username}</p>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">{role}</p>
               </div>
             </button>
 
             {/* Dropdown Menu */}
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    onNavigate?.("profile");
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                >
                   <User size={16} />
                   View Profile
                 </button>
-                <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    onNavigate?.("settings");
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                >
                   <span>⚙️</span>
                   Settings
                 </button>
                 <hr className="my-2" />
                 <button
+                  type="button"
                   onClick={() => {
                     setProfileOpen(false);
                     onLogout?.();
                   }}
                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
                 >
-                  <LogOut size={16} />
+                 
+                  <LogOut size={12} />
                   Logout
                 </button>
               </div>
