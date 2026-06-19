@@ -265,10 +265,10 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
       currentStudents.map((student) =>
         getStudentKey(student) === studentId
           ? {
-              ...student,
-              rollNo,
-              name,
-            }
+            ...student,
+            rollNo,
+            name,
+          }
           : student
       )
     );
@@ -311,9 +311,9 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
           const studentKey = getStudentKey(student);
           const isPresent = Boolean(
             attendanceData[studentKey] ??
-              attendanceData[student.id] ??
-              attendanceData[student._id] ??
-              attendanceData[student.rollNo]
+            attendanceData[student.id] ??
+            attendanceData[student._id] ??
+            attendanceData[student.rollNo]
           );
 
           return {
@@ -334,7 +334,7 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
       console.error("Error submitting attendance:", error);
       showError(
         error.response?.data?.message ||
-          "Something went wrong while submitting attendance."
+        "Something went wrong while submitting attendance."
       );
     } finally {
       setLoading(false);
@@ -345,20 +345,20 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
     <div className="space-y-8">
       {section === "dashboard" && (
         <motion.div
-        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:p-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
-            Welcome, {user.name || "Faculty"}!
-          </h1>
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:p-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
+              Welcome, {user.name || "Faculty"}!
+            </h1>
 
-          <p className="text-slate-500 font-medium">
-            Manage section-wise students and mark attendance
-          </p>
-        </div>
-      </motion.div>
+            <p className="text-slate-500 font-medium">
+              Manage section-wise students and mark attendance
+            </p>
+          </div>
+        </motion.div>
       )}
 
       <motion.div
@@ -458,332 +458,332 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
 
       {section === "dashboard" && (
         <motion.div
-        className="bg-white rounded-xl shadow-md p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">
-              Students in Section {selectedClass}
-            </h2>
-
-            <p className="text-sm text-gray-500 mt-1">
-              Add, edit, and delete students before marking attendance.
-            </p>
-          </div>
-
-          <div className="bg-purple-100 rounded-lg p-4">
-            <Users size={28} className="text-purple-600" />
-          </div>
-        </div>
-
-        <form
-          onSubmit={handleAddStudent}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+          className="bg-white rounded-xl shadow-md p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
         >
-          <input
-            type="text"
-            value={studentForm.rollNo}
-            onChange={(e) =>
-              setStudentForm((prev) => ({
-                ...prev,
-                rollNo: e.target.value,
-              }))
-            }
-            placeholder="Roll No"
-            className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-          />
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">
+                Students in Section {selectedClass}
+              </h2>
 
-          <input
-            type="text"
-            value={studentForm.name}
-            onChange={(e) =>
-              setStudentForm((prev) => ({
-                ...prev,
-                name: e.target.value,
-              }))
-            }
-            placeholder="Student Name"
-            className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-          />
+              <p className="text-sm text-gray-500 mt-1">
+                Add, edit, and delete students before marking attendance.
+              </p>
+            </div>
 
-          <button
-            type="submit"
-            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            <div className="bg-purple-100 rounded-lg p-4">
+              <Users size={28} className="text-purple-600" />
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleAddStudent}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
           >
-            <UserPlus size={18} />
-            Add Student
-          </button>
-        </form>
+            <input
+              type="text"
+              value={studentForm.rollNo}
+              onChange={(e) =>
+                setStudentForm((prev) => ({
+                  ...prev,
+                  rollNo: e.target.value,
+                }))
+              }
+              placeholder="Roll No"
+              className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+            />
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Roll No
-                </th>
+            <input
+              type="text"
+              value={studentForm.name}
+              onChange={(e) =>
+                setStudentForm((prev) => ({
+                  ...prev,
+                  name: e.target.value,
+                }))
+              }
+              placeholder="Student Name"
+              className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+            />
 
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Name
-                </th>
+            <button
+              type="submit"
+              className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            >
+              <UserPlus size={18} />
+              Add Student
+            </button>
+          </form>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Section
-                </th>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    Roll No
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    Name
+                  </th>
 
-            <tbody>
-              {students.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="4"
-                    className="px-4 py-6 text-center text-gray-500"
-                  >
-                    No students added in this section.
-                  </td>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Section
+                  </th>
+
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                students.map((student) => {
-                  const studentKey = getStudentKey(student);
+              </thead>
 
-                  return (
-                  <tr
-                    key={studentKey}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-4 py-3">
-                      {editingStudentId === studentKey ? (
-                        <input
-                          type="text"
-                          value={editingForm.rollNo}
-                          onChange={(e) =>
-                            setEditingForm((prev) => ({
-                              ...prev,
-                              rollNo: e.target.value,
-                            }))
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                        />
-                      ) : (
-                        <span className="text-sm font-semibold text-gray-900">
-                          {student.rollNo}
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {editingStudentId === studentKey ? (
-                        <input
-                          type="text"
-                          value={editingForm.name}
-                          onChange={(e) =>
-                            setEditingForm((prev) => ({
-                              ...prev,
-                              name: e.target.value,
-                            }))
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                        />
-                      ) : (
-                        <span className="text-sm text-gray-900">
-                          {student.name}
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
-                        {selectedClass}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-center">
-                      {editingStudentId === studentKey ? (
-                        <div className="flex justify-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleSaveStudent(studentKey)}
-                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
-                          >
-                            <Save size={17} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleCancelEdit}
-                            className="p-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                          >
-                            <X size={17} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex justify-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEditStudent(student)}
-                            className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
-                          >
-                            <Pencil size={17} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteStudent(studentKey)}
-                            className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
-                          >
-                            <Trash2 size={17} />
-                          </button>
-                        </div>
-                      )}
+              <tbody>
+                {students.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      className="px-4 py-6 text-center text-gray-500"
+                    >
+                      No students added in this section.
                     </td>
                   </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
+                ) : (
+                  students.map((student) => {
+                    const studentKey = getStudentKey(student);
+
+                    return (
+                      <tr
+                        key={studentKey}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          {editingStudentId === studentKey ? (
+                            <input
+                              type="text"
+                              value={editingForm.rollNo}
+                              onChange={(e) =>
+                                setEditingForm((prev) => ({
+                                  ...prev,
+                                  rollNo: e.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-gray-900">
+                              {student.rollNo}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {editingStudentId === studentKey ? (
+                            <input
+                              type="text"
+                              value={editingForm.name}
+                              onChange={(e) =>
+                                setEditingForm((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                            />
+                          ) : (
+                            <span className="text-sm text-gray-900">
+                              {student.name}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3 text-center">
+                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                            {selectedClass}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-3 text-center">
+                          {editingStudentId === studentKey ? (
+                            <div className="flex justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSaveStudent(studentKey)}
+                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                              >
+                                <Save size={17} />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={handleCancelEdit}
+                                className="p-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                              >
+                                <X size={17} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleEditStudent(student)}
+                                className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
+                              >
+                                <Pencil size={17} />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteStudent(studentKey)}
+                                className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                              >
+                                <Trash2 size={17} />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       )}
 
       {section === "attendance" && (
         <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <AttendanceTable
-          students={studentsWithExistingAttendance}
-          onSubmit={handleSubmitAttendance}
-          loading={loading || fetchingRecords}
-        />
-      </motion.div>
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <AttendanceTable
+            students={studentsWithExistingAttendance}
+            onSubmit={handleSubmitAttendance}
+            loading={loading || fetchingRecords}
+          />
+        </motion.div>
       )}
 
       {section === "attendance" && (
         <motion.div
-        className="bg-white rounded-xl shadow-md p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <h2 className="text-xl font-bold text-gray-800 mb-6">
-          Previous Records
-        </h2>
+          className="bg-white rounded-xl shadow-md p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h2 className="text-xl font-bold text-gray-800 mb-6">
+            Previous Records
+          </h2>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Date
-                </th>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                    Date
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Section
-                </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Section
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Subject
-                </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Subject
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Total
-                </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Total
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Present
-                </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Present
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Absent
-                </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Absent
+                  </th>
 
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  Percentage
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {fetchingRecords ? (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="px-4 py-6 text-center text-gray-500"
-                  >
-                    Loading attendance records...
-                  </td>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    Percentage
+                  </th>
                 </tr>
-              ) : attendanceRecords.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="px-4 py-6 text-center text-gray-500"
-                  >
-                    No attendance records found for this section and subject.
-                  </td>
-                </tr>
-              ) : (
-                attendanceRecords.map((record, idx) => (
-                  <motion.tr
-                    key={record.id || idx}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                      {new Date(record.date).toLocaleDateString()}
-                    </td>
+              </thead>
 
-                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
-                      {record.section}
+              <tbody>
+                {fetchingRecords ? (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="px-4 py-6 text-center text-gray-500"
+                    >
+                      Loading attendance records...
                     </td>
-
-                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
-                      {record.subject}
+                  </tr>
+                ) : attendanceRecords.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="px-4 py-6 text-center text-gray-500"
+                    >
+                      No attendance records found for this section and subject.
                     </td>
+                  </tr>
+                ) : (
+                  attendanceRecords.map((record, idx) => (
+                    <motion.tr
+                      key={record.id || idx}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                        {new Date(record.date).toLocaleDateString()}
+                      </td>
 
-                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
-                      {record.totalStudents}
-                    </td>
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                        {record.section}
+                      </td>
 
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                        {record.present}
-                      </span>
-                    </td>
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                        {record.subject}
+                      </td>
 
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
-                        {record.absent}
-                      </span>
-                    </td>
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                        {record.totalStudents}
+                      </td>
 
-                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
-                      {record.totalStudents > 0
-                        ? Math.round(
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                          {record.present}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                          {record.absent}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                        {record.totalStudents > 0
+                          ? Math.round(
                             (record.present / record.totalStudents) * 100
                           )
-                        : 0}
-                      %
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
+                          : 0}
+                        %
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       )}
     </div>
   );
