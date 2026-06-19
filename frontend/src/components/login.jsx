@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import api from "../services/api";
 import { useNavigate, Link } from "react-router-dom";
-import heroImg from "../assets/college logo.png";
+import heroImg from "../assets/hero-illustration.png";
 import { normalizeUser } from "../utils/attendanceUtils";
 import "../components/AuthForm.css";
-import "../styles/Login.css";
 
 function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState({
@@ -37,10 +35,6 @@ function Login() {
       // Store token and normalized user data
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(normalizeUser(res.data.user)));
-      
-      if (rememberMe) {
-        localStorage.setItem("email", user.email);
-      }
 
       navigate("/dashboard");
     } catch (err) {
@@ -61,155 +55,97 @@ function Login() {
 
   return (
     <div className="auth-split-wrapper">
-      {/* Left Pane: Hero Section */}
+      {/* Left Pane: Hero Section (Fixed) */}
       <div className="auth-hero">
-        <div className="floating-shape shape-1"></div>
-        <div className="floating-shape shape-2"></div>
-        <div className="floating-shape shape-3"></div>
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
         <div className="auth-hero-content">
-          <h1 className="auth-hero-title">Welcome to BBCIT</h1>
+          <h1 className="auth-hero-title">Welcome to<br/>student portal</h1>
           <p className="auth-hero-subtitle">
-            Experience world-class education with our state-of-the-art facilities and experienced faculty. Join us to build your future.
+            Login to access your account
           </p>
+          <img src={heroImg} alt="Student Portal" className="hero-illustration" />
         </div>
       </div>
 
-      {/* Right Pane: Form Content */}
+      {/* Right Pane: Form Content (Scrollable) */}
       <div className="auth-content">
         <div className="auth-card">
-          <div style={{
-            textAlign: "center",
-            marginBottom: "24px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "8px"
-          }}>
-            <img
-              src={heroImg}
-              alt="BBCIT Logo"
-              style={{
-                width: "72px",
-                height: "72px",
-                borderRadius: "12px",
-                filter: "drop-shadow(0 8px 16px rgba(90, 58, 168, 0.15))"
-              }}
-              className="logo-img"
-            />
-            <div style={{
-              fontSize: "11px",
-              fontWeight: "800",
-              color: "#5a3aa8",
-              letterSpacing: "0.5px",
-              textTransform: "uppercase"
-            }}>
-              BBCIT Portal
-            </div>
-          </div>
+          {/* Heading */}
+          <h1 className="auth-heading">Login</h1>
+          <p className="auth-subtitle">Enter your account details</p>
 
-        {/* Tab Switcher */}
-        <div className="tab-switcher">
-          <button className="tab-button active">
-            Login
-          </button>
-          <Link to="/register" style={{ textDecoration: 'none' }}>
-            <button 
-              type="button" 
-              className="tab-button"
-              style={{ color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', fontWeight: '600', padding: '8px 4px', transition: 'color 0.3s ease' }}
-              onMouseEnter={(e) => e.target.style.color = '#5a3aa8'}
-              onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
+          {/* Error Message */}
+          {error && <div className="error-message">{error}</div>}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit}>
+            {/* Email Field */}
+            <div className="form-group">
+              <label className="form-label">Username</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="email"
+                  name="email"
+                  className="form-input"
+                  placeholder="Username"
+                  value={user.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  className="form-input"
+                  placeholder="Password"
+                  value={user.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  className="input-icon-right"
+                  onClick={togglePasswordVisibility}
+                  style={{ background: 'none', border: 'none' }}
+                >
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+            </div>
+
+            {/* Forgot Password */}
+            <div className="form-row">
+              <Link to="/forgot-password" className="forgot-password">
+                Forgot Password?
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className={`submit-button ${loading ? 'loading' : ''}`}
+              disabled={loading}
             >
-              Register
+              {loading ? 'Logging In...' : 'Login'}
             </button>
-          </Link>
-        </div>
+          </form>
 
-        {/* Heading */}
-        <h1 className="auth-heading">Welcome Back</h1>
-        <p className="auth-subtitle">Sign in to your account to continue</p>
-
-        {/* Error Message */}
-        {error && <div className="error-message">{error}</div>}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          {/* Email Field */}
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <div style={{ position: 'relative' }}>
-              <div className="input-icon">✉️</div>
-              <input
-                type="email"
-                name="email"
-                className="form-input"
-                placeholder="your@email.com"
-                value={user.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Password Field */}
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div className="password-input-wrapper">
-              <div className="input-icon">🔒</div>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                className="form-input"
-                placeholder="Enter your password"
-                value={user.password}
-                onChange={handleChange}
-                required
-              />
-              <button
-                type="button"
-                className="input-icon-right"
-                onClick={togglePasswordVisibility}
-                style={{ background: 'none', border: 'none' }}
-              >
-                {showPassword ? "👁️" : "👁️‍🗨️"}
-              </button>
-            </div>
-          </div>
-
-          {/* Remember Me & Forgot Password */}
-          <div className="form-row">
-            <label className="checkbox-wrapper">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <span className="checkbox-label">Remember me</span>
-            </label>
-            <Link to="/forgot-password" className="forgot-password">
-              Forgot Password?
+          {/* Footer */}
+          <div className="form-footer">
+            <span className="form-footer-text">
+              Don't have an account?
+            </span>
+            <Link to="/register" className="signup-button">
+              Sign up
             </Link>
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className={`submit-button ${loading ? 'loading' : ''}`}
-            disabled={loading}
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="form-footer">
-          <span className="form-footer-text">
-            Don't have an account?{' '}
-            <Link to="/register" className="form-footer-link">
-              Create one now
-            </Link>
-          </span>
-        </div>
         </div>
       </div>
     </div>
