@@ -3,7 +3,8 @@
   background: linear-gradient(135deg, #f8f7f4 0%, #ebe8e0 50%, #f0ede5 100%);
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Elegant classical pattern overlay */

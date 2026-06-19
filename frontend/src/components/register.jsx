@@ -149,42 +149,52 @@ function Register() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div
-          style={{
+    <div className="auth-split-wrapper">
+      {/* Left Pane: Hero Section */}
+      <div className="auth-hero">
+        <div className="floating-shape shape-1"></div>
+        <div className="floating-shape shape-2"></div>
+        <div className="floating-shape shape-3"></div>
+        <div className="auth-hero-content">
+          <h1 className="auth-hero-title">Join BBCIT Today</h1>
+          <p className="auth-hero-subtitle">
+            Take the first step towards a brilliant career in Information Technology. Create your account to access our digital campus.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Pane: Form Content */}
+      <div className="auth-content">
+        <div className="auth-card">
+          <div style={{
             textAlign: "center",
-            marginBottom: "28px",
+            marginBottom: "24px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "12px",
-          }}
-        >
-          <img
-            src={heroImg}
-            alt="BBCIT Logo"
-            style={{
-              width: "120px",
-              height: "120px",
-              borderRadius: "12px",
-              filter: "drop-shadow(0 4px 12px rgba(90, 58, 168, 0.15))",
-              transition: "transform 0.3s ease",
-            }}
-            className="logo-img"
-          />
-          <div
-            style={{
-              fontSize: "13px",
-              fontWeight: "600",
+            gap: "8px"
+          }}>
+            <img
+              src={heroImg}
+              alt="BBCIT Logo"
+              style={{
+                width: "72px",
+                height: "72px",
+                borderRadius: "12px",
+                filter: "drop-shadow(0 8px 16px rgba(90, 58, 168, 0.15))"
+              }}
+              className="logo-img"
+            />
+            <div style={{
+              fontSize: "11px",
+              fontWeight: "800",
               color: "#5a3aa8",
               letterSpacing: "0.5px",
-              textTransform: "uppercase",
-            }}
-          >
-            BANKATLAL BADRUKA COLLEGE FOR INFORMATION AND TECHNOLOGY
+              textTransform: "uppercase"
+            }}>
+              BBCIT Portal
+            </div>
           </div>
-        </div>
 
         <div className="tab-switcher">
           <Link to="/" style={{ textDecoration: "none" }}>
@@ -437,6 +447,7 @@ function Register() {
               Sign in
             </Link>
           </span>
+        </div>
         </div>
       </div>
     </div>

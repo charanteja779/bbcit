@@ -27,42 +27,7 @@ function AppLayout() {
 
   return (
     <div className={isAuthPage ? "auth-layout" : "dashboard-layout"}>
-      {/* Header Section - Only show on auth pages */}
-      {isAuthPage && (
-        <header
-          style={{
-            textAlign: "centre",
-            padding: "40px 20px 20px",
-            position: "relative",
-            zIndex: "3",
-            background:
-              "linear-gradient(to bottom, rgba(245, 241, 255, 0.8), transparent)",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#5a3aa8",
-              margin: "0 0 10px 0",
-              letterSpacing: "0.5px",
-            }}
-          >
-
-          </h1>
-
-          <p
-            style={{
-              fontSize: "14px",
-              color: "#718096",
-              margin: "0",
-              letterSpacing: "0.3px",
-            }}
-          >
-
-          </p>
-        </header>
-      )}
+      {/* Removed empty Header Section */}
 
       {/* Routes */}
       <Routes>
