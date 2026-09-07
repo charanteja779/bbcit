@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 :root {
   --text: #1a3a52;
   --text-h: #0d1f2d;
@@ -11,7 +13,7 @@
   --shadow:
     rgba(26, 58, 82, 0.08) 0 10px 30px -5px, rgba(26, 58, 82, 0.03) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, -apple-system, sans-serif;
+  --sans: "Manrope", 'Segoe UI', sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   letter-spacing: 0.18px;
@@ -21,10 +23,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 12px;
-  }
+  font-size: 18px;
 }
 
 body, html {
@@ -68,6 +67,76 @@ body {
 
 body {
   margin: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .portal-shell main {
+    padding: 1rem 0.75rem !important;
+  }
+
+  .portal-shell main > div > div:first-child {
+    margin-bottom: 1rem;
+  }
+
+  .portal-shell .text-3xl {
+    font-size: 1.55rem;
+    line-height: 1.2;
+  }
+
+  .portal-shell .text-2xl {
+    font-size: 1.3rem;
+    line-height: 1.25;
+  }
+
+  .portal-shell .p-6,
+  .portal-shell .lg\:p-8 {
+    padding: 1rem;
+  }
+
+  .portal-shell .gap-6 {
+    gap: 1rem;
+  }
+
+  .portal-shell .text-sm {
+    font-size: 0.95rem;
+  }
+
+  .portal-shell .text-base {
+    font-size: 1rem;
+  }
+
+  .portal-shell .flex-wrap > * {
+    min-width: 0;
+  }
+
+  .portal-shell h1,
+  .portal-shell h2,
+  .portal-shell h3,
+  .portal-shell p,
+  .portal-shell td,
+  .portal-shell th {
+    overflow-wrap: anywhere;
+  }
 }
 
 #root {

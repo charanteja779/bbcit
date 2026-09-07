@@ -1,14 +1,19 @@
 /* Dark Mode Figma Layout */
 .auth-split-wrapper {
   display: flex;
-  min-height: 100vh;
   width: 100%;
-  background-color: #1c1c1e;
+  min-height: 100vh;
+  margin: 0;
+  background: #050505;
+  color: #ffffff;
+  border: none;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 @media (max-width: 1024px) {
   .auth-split-wrapper {
-    flex-direction: column;
+    width: 100%;
   }
 }
 
@@ -20,18 +25,19 @@
 
 /* Form Container (Right Pane now) */
 .auth-content {
-  flex: 1;
+  flex: 1.15;
   display: block;
-  padding: 40px;
-  background: transparent;
-  height: 100vh;
-  overflow-y: auto;
+  padding: 48px 56px;
+  background: #050505;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 400px;
-  margin: 8vh auto;
+  max-width: 440px;
+  margin: 0 auto;
   background: transparent;
   padding: 0;
   box-shadow: none;
@@ -39,29 +45,29 @@
 }
 
 .auth-heading {
-  font-size: 32px;
-  font-weight: 800;
+  font-size: 42px;
+  font-weight: 700;
   color: #ffffff;
   margin: 0 0 8px 0;
   letter-spacing: -0.5px;
 }
 
 .auth-subtitle {
-  font-size: 13px;
+  font-size: 19px;
   color: #a1a1aa;
-  margin: 0 0 40px 0;
+  margin: 0 0 30px 0;
   font-weight: 400;
 }
 
 /* Minimalist Form Fields */
 .form-group {
-  margin-bottom: 24px;
+  margin-bottom: 22px;
   position: relative;
 }
 
 .form-label {
   display: block;
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 500;
   color: #a1a1aa;
   margin-bottom: 4px;
@@ -72,9 +78,9 @@
   padding: 12px 0;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #3f3f46;
+  border-bottom: 1px solid #aaa;
   border-radius: 0;
-  font-size: 14px;
+  font-size: 20px;
   color: #ffffff;
   transition: border-color 0.3s ease;
   box-sizing: border-box;
@@ -97,7 +103,7 @@ select.form-input option {
 .form-input:focus {
   outline: none;
   border-bottom-color: #a855f7;
-  box-shadow: none;
+  box-shadow: 0 1px 0 #ffffff;
 }
 
 .form-input::placeholder {
@@ -162,7 +168,7 @@ select.form-input option {
 }
 
 .forgot-password {
-  font-size: 12px;
+  font-size: 18px;
   color: #a1a1aa;
   text-decoration: none;
   font-weight: 400;
@@ -177,18 +183,18 @@ select.form-input option {
 .submit-button {
   width: 100%;
   padding: 14px;
-  background: #a855f7;
+  background: #6e1ee8;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 22px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
 .submit-button:hover {
-  background: #9333ea;
+  background: #842eff;
 }
 
 .submit-button:disabled {
@@ -197,24 +203,24 @@ select.form-input option {
 }
 
 .form-footer {
-  margin-top: 40px;
+  margin-top: 22px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  justify-content: center;
 }
 
 .form-footer-text {
-  font-size: 13px;
+  font-size: 18px;
   color: #71717a;
 }
 
 .signup-button {
-  background: #27272a;
-  color: #ffffff;
+  background: transparent;
+  color: #bd7cff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 0;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
@@ -222,7 +228,7 @@ select.form-input option {
 }
 
 .signup-button:hover {
-  background: #3f3f46;
+  color: #ffffff;
 }
 
 /* Messages */
@@ -231,7 +237,7 @@ select.form-input option {
   background: rgba(239, 68, 68, 0.1);
   padding: 12px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 16px;
   margin-bottom: 24px;
   border-left: 3px solid #ef4444;
 }
@@ -253,16 +259,16 @@ select.form-input option {
 
 /* Hero Section (Left Pane) */
 .auth-hero {
-  flex: 1.2;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  background: #a855f7;
+  flex: 0.9;
+  position: relative;
+  min-height: 540px;
+  background: #5415bd;
+  clip-path: polygon(0 0, 100% 0, 58% 100%, 0 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
+  padding: 48px 34px;
   overflow: hidden;
   color: white;
 }
@@ -270,22 +276,22 @@ select.form-input option {
 .auth-hero-content {
   position: relative;
   z-index: 2;
-  text-align: center;
-  max-width: 500px;
+  text-align: left;
+  max-width: 260px;
 }
 
 .auth-hero-title {
   font-size: 48px;
-  font-weight: 800;
-  margin-bottom: 8px;
+  font-weight: 700;
+  margin-bottom: 10px;
   line-height: 1.1;
   color: #ffffff;
 }
 
 .auth-hero-subtitle {
-  font-size: 14px;
+  font-size: 19px;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 40px;
+  margin-bottom: 44px;
 }
 
 .hero-illustration {
@@ -294,6 +300,8 @@ select.form-input option {
   height: auto;
   object-fit: contain;
   margin-top: 20px;
+  opacity: 0.92;
+  filter: drop-shadow(0 22px 34px rgba(4, 1, 15, 0.35));
 }
 
 /* Abstract Blobs in background */
@@ -315,19 +323,65 @@ select.form-input option {
 @media (max-width: 768px) {
   .auth-hero {
     position: relative;
-    height: auto;
-    min-height: 300px;
-    padding: 32px 20px;
+    min-height: 220px;
+    padding: 30px 24px;
+    clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%);
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .auth-hero-content {
+    display: block;
+    width: min(100%, 420px);
+    max-width: none;
+    margin: 0;
+    text-align: left;
   }
   .auth-hero-title {
-    font-size: 32px;
-  }
-  .hero-illustration {
-    max-width: 250px;
+    font-size: 36px;
   }
   .auth-content {
-    height: auto;
-    overflow-y: visible;
-    padding: 32px 20px;
+    padding: 32px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-hero {
+    min-height: 180px;
+    padding: 24px 20px;
+    align-items: flex-start;
+  }
+
+  .auth-hero-title {
+    font-size: 30px;
+  }
+
+  .auth-hero-subtitle {
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+
+  .auth-content {
+    padding: 28px 18px 36px;
+  }
+
+  .auth-heading {
+    font-size: 34px;
+  }
+
+  .auth-subtitle,
+  .form-label,
+  .forgot-password,
+  .form-footer-text,
+  .signup-button {
+    font-size: 16px;
+  }
+
+  .form-input {
+    font-size: 17px;
+  }
+
+  .form-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

@@ -1,7 +1,7 @@
+// Developer_Hash: bbcit-auth-student-mgmt-v1
 import React, { useState } from "react";
 import api from "../services/api";
 import { useNavigate, Link } from "react-router-dom";
-import heroImg from "../assets/hero-illustration.png";
 import { normalizeUser } from "../utils/attendanceUtils";
 import "../components/AuthForm.css";
 
@@ -10,14 +10,14 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState({
-    email: "",
-    password: ""
+  const [credentials, setCredentials] = useState({
+    identifier: "",
+    password: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+    setCredentials((prev) => ({ ...prev, [name]: value }));
     setError("");
   };
 
@@ -27,14 +27,29 @@ function Login() {
     setError("");
 
     try {
-      const res = await api.post(
-        "/api/auth/login",
-        user
-      );
-      
+      const res = await api.post("/api/auth/login", {
+        identifier: credentials.identifier.trim(),
+        email: credentials.identifier.trim(),
+        password: credentials.password,
+      });
+
       // Store token and normalized user data
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(normalizeUser(res.data.user)));
+      // DEBUG: inspect login response
+console.log("LOGIN RESPONSE:", res.data);
+console.log("LOGIN TOKEN:", res.data.token);
+
+if (!res.data.token) {
+  throw new Error("Backend did not return a login token");
+}
+
+// Store token and normalized user data
+localStorage.setItem("token", res.data.token);
+localStorage.setItem(
+  "user",
+  JSON.stringify(normalizeUser(res.data.user))
+);
+
+console.log("STORED TOKEN:", localStorage.getItem("token"));
 
       navigate("/dashboard");
     } catch (err) {
@@ -42,7 +57,7 @@ function Login() {
         err.response?.data?.message ||
         (err.response?.status === 503
           ? "Database is not connected. Please start MongoDB and restart the backend."
-          : "Login failed. Please try again.");
+          : "Login failed. Please check your credentials and try again.");
 
       setError(message);
       setLoading(false);
@@ -55,16 +70,16 @@ function Login() {
 
   return (
     <div className="auth-split-wrapper">
-      {/* Left Pane: Hero Section (Fixed) */}
       <div className="auth-hero">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
         <div className="auth-hero-content">
-          <h1 className="auth-hero-title">Welcome to<br/>student portal</h1>
+          <h1 className="auth-hero-title">
+            Welcome to
+            <br />
+            BBCIT Portal
+          </h1>
           <p className="auth-hero-subtitle">
-            Login to access your account
+            Login to access student & faculty dashboard
           </p>
-          <img src={heroImg} alt="Student Portal" className="hero-illustration" />
         </div>
       </div>
 
@@ -73,23 +88,25 @@ function Login() {
         <div className="auth-card">
           {/* Heading */}
           <h1 className="auth-heading">Login</h1>
-          <p className="auth-subtitle">Enter your account details</p>
+          <p className="auth-subtitle">
+            Enter your Roll Number or Email to continue
+          </p>
 
           {/* Error Message */}
           {error && <div className="error-message">{error}</div>}
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
-            {/* Email Field */}
+            {/* Roll Number or Email Field */}
             <div className="form-group">
-              <label className="form-label">Username</label>
-              <div style={{ position: 'relative' }}>
+              <label className="form-label">Roll Number or Email</label>
+              <div style={{ position: "relative" }}>
                 <input
-                  type="email"
-                  name="email"
+                  type="text"
+                  name="identifier"
                   className="form-input"
-                  placeholder="Username"
-                  value={user.email}
+                  placeholder="e.g. 21BD5A0526 or faculty@bbcit.edu.in"
+                  value={credentials.identifier}
                   onChange={handleChange}
                   required
                 />
@@ -104,8 +121,8 @@ function Login() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   className="form-input"
-                  placeholder="Password"
-                  value={user.password}
+                  placeholder="Enter your password"
+                  value={credentials.password}
                   onChange={handleChange}
                   required
                 />
@@ -113,11 +130,21 @@ function Login() {
                   type="button"
                   className="input-icon-right"
                   onClick={togglePasswordVisibility}
-                  style={{ background: 'none', border: 'none' }}
+                  style={{ background: "none", border: "none" }}
                 >
                   {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: "#94a3b8",
+                  marginTop: "4px",
+                  display: "block",
+                }}
+              >
+                Students: Default password is your Roll Number.
+              </span>
             </div>
 
             {/* Forgot Password */}
@@ -130,20 +157,20 @@ function Login() {
             {/* Submit Button */}
             <button
               type="submit"
-              className={`submit-button ${loading ? 'loading' : ''}`}
+              className={`submit-button ${loading ? "loading" : ""}`}
               disabled={loading}
             >
-              {loading ? 'Logging In...' : 'Login'}
+              {loading ? "Logging In..." : "Login"}
             </button>
           </form>
 
           {/* Footer */}
           <div className="form-footer">
             <span className="form-footer-text">
-              Don't have an account?
+              Need to reset your access?
             </span>
-            <Link to="/register" className="signup-button">
-              Sign up
+            <Link to="/forgot-password" className="signup-button">
+              Forgot Password
             </Link>
           </div>
         </div>

@@ -1,3 +1,6 @@
+// Developer_Hash: bbcit-faculty-subject-years-v2
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -6,7 +9,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI =
-  process.env.MONGO_URI || "mongodb+srv://charan:charantejam7675@cluster0.oqd9ugj.mongodb.net/?appName=Cluster0";
+  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/authDB";
 
 app.use(express.json());
 app.use(cors());
@@ -14,31 +17,73 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 mongoose.set("bufferCommands", false);
 
-const startServer = async () => {
+const connectDB = async () => {
   try {
+    console.log("Connecting to local MongoDB (127.0.0.1:27017/authDB)...");
     await mongoose.connect(MONGO_URI);
-    console.log("DB Connected");
+    console.log("DB Connected to local MongoDB (authDB)");
   } catch (err) {
-    console.error("MongoDB connection failed:", err.message);
+    console.error("Local MongoDB connection failed:", err.message);
     console.error(
-      "Start MongoDB first. On Windows, run as Administrator: net start MongoDB"
+      "Make sure MongoDB service is running. On Windows, run in Administrator Command Prompt: net start MongoDB"
     );
-    process.exit(1);
   }
+};
 
-  app.use("/api/auth", require("./routes/auth"));
-  app.use("/api/attendance", require("./routes/attendance"));
-  app.use("/api/gallery", require("./routes/gallery"));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/students", require("./routes/students"));
+app.use("/api/admin", require("./routes/admin"));
+app.use("/api/attendance", require("./routes/attendance"));
+app.use("/api/gallery", require("./routes/gallery"));
 
-  app.get("/api/health", (_req, res) => {
-    res.json({
-      status: "ok",
-      database:
-        mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-    });
+const ensureDefaultAdmin = async () => {
+  try {
+    const User = require("./models/user");
+    const adminEmail = "admin@bbcit.edu.in";
+    const adminUsername = "Admin Hod";
+    const existingAdmin = await User.findOne({ email: adminEmail });
+
+    if (!existingAdmin) {
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash("Admin@123", 10);
+
+      await User.create({
+        username: adminUsername,
+        rollNo: adminUsername,
+        email: adminEmail,
+        password: hashedPassword,
+        role: "admin",
+        department: "Administration",
+      });
+
+      console.log(`Default admin created: ${adminUsername} / Admin@123`);
+    } else {
+      const needsUpdate = existingAdmin.username !== adminUsername || !existingAdmin.rollNo;
+      if (needsUpdate) {
+        existingAdmin.username = adminUsername;
+        existingAdmin.rollNo = adminUsername;
+        await existingAdmin.save();
+        console.log(`Default admin updated to username: ${adminUsername}`);
+      }
+    }
+  } catch (err) {
+    console.error("Admin seed failed:", err.message);
+  }
+};
+
+app.get("/api/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    database:
+      mongoose.connection.readyState === 1 ? "connected" : "disconnected",
   });
+});
 
-  app.listen(PORT,"0.0.0.0", () => {
+const startServer = async () => {
+  await connectDB();
+  await ensureDefaultAdmin();
+
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
   });
 };

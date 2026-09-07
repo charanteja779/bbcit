@@ -1,8 +1,160 @@
 /* Dashboard Page Layout */
 .dashboard-layout {
-  background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
+  background: #f6f5fb;
   min-height: 100vh;
   position: relative;
+}
+
+.portal-shell {
+  background: #f6f5fb;
+  color: #20202a;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 18px;
+}
+
+.portal-shell main {
+  background: transparent;
+  min-width: 0;
+}
+
+.faculty-dashboard {
+  max-width: 100%;
+  overflow-wrap: normal;
+}
+
+.faculty-welcome-title,
+.faculty-subject-title,
+.faculty-description,
+.faculty-section-label,
+.faculty-classroom-label,
+.faculty-active-classroom {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.faculty-dashboard button,
+.faculty-dashboard input,
+.faculty-dashboard select {
+  min-width: 0;
+}
+
+.faculty-dashboard table {
+  max-width: 100%;
+}
+
+.faculty-dashboard > * + * {
+  margin-top: 1.25rem;
+}
+
+.faculty-dashboard .p-6 {
+  padding: 1.1rem;
+}
+
+.faculty-dashboard .p-7 {
+  padding: 1.2rem;
+}
+
+.faculty-dashboard .p-8 {
+  padding: 1.35rem;
+}
+
+.faculty-dashboard .text-sm {
+  font-size: 0.9rem;
+}
+
+.faculty-dashboard .text-base {
+  font-size: 0.95rem;
+}
+
+.faculty-dashboard .text-4xl {
+  font-size: 2rem;
+}
+
+.faculty-dashboard .text-3xl {
+  font-size: 1.7rem;
+}
+
+.faculty-dashboard .text-2xl {
+  font-size: 1.35rem;
+}
+
+.faculty-dashboard .text-xl {
+  font-size: 1.1rem;
+}
+
+.faculty-dashboard .text-lg {
+  font-size: 1rem;
+}
+
+.portal-shell .text-xs {
+  font-size: 0.95rem;
+}
+
+.portal-shell .text-sm {
+  font-size: 1.1rem;
+}
+
+.portal-shell .text-base {
+  font-size: 1.2rem;
+}
+
+.portal-shell .faculty-dashboard {
+  font-size: 0.9rem;
+}
+
+.portal-shell .faculty-dashboard .text-xs {
+  font-size: 0.7rem;
+}
+
+.portal-shell .faculty-dashboard .text-sm {
+  font-size: 0.85rem;
+}
+
+.portal-shell .faculty-dashboard .text-base {
+  font-size: 0.95rem;
+}
+
+.portal-shell .faculty-dashboard .text-lg {
+  font-size: 1rem;
+}
+
+.portal-shell .faculty-dashboard .text-xl {
+  font-size: 1.1rem;
+}
+
+.portal-shell .faculty-dashboard .text-2xl {
+  font-size: 1.25rem;
+}
+
+.portal-shell .faculty-dashboard .text-3xl {
+  font-size: 1.55rem;
+}
+
+.portal-shell .faculty-dashboard .text-4xl {
+  font-size: 1.85rem;
+}
+
+.portal-shell .faculty-dashboard input,
+.portal-shell .faculty-dashboard select,
+.portal-shell .faculty-dashboard button {
+  font-size: 0.85rem;
+}
+
+.admin-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: #fff;
+}
+
+.admin-input:focus {
+  outline: 2px solid rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
 }
 
 /* Optional: Add a different background pattern for dashboard */
@@ -14,8 +166,8 @@
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+    linear-gradient(135deg, rgba(124, 58, 237, 0.05), transparent 42%),
+    radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 44%);
   pointer-events: none;
   z-index: 0;
 }
@@ -44,4 +196,86 @@
   padding: 40px 20px;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .portal-shell {
+    font-size: 16px;
+  }
+
+  .portal-shell .text-xs {
+    font-size: 0.75rem;
+  }
+
+  .portal-shell .text-sm {
+    font-size: 0.875rem;
+  }
+
+  .portal-shell .text-base {
+    font-size: 1rem;
+  }
+
+  .faculty-dashboard {
+    gap: 1rem;
+  }
+
+  .faculty-dashboard > * + * {
+    margin-top: 0.9rem;
+  }
+
+  .faculty-dashboard .p-5,
+  .faculty-dashboard .p-6,
+  .faculty-dashboard .p-7,
+  .faculty-dashboard .p-8 {
+    padding: 0.85rem;
+  }
+
+  .portal-shell .faculty-dashboard .text-lg {
+    font-size: 0.9rem;
+  }
+
+  .portal-shell .faculty-dashboard .text-xl {
+    font-size: 1rem;
+  }
+
+  .portal-shell .faculty-dashboard .text-2xl {
+    font-size: 1.1rem;
+  }
+
+  .portal-shell .faculty-dashboard .text-3xl,
+  .portal-shell .faculty-dashboard .text-4xl {
+    font-size: 1.35rem;
+  }
+
+  .portal-shell .faculty-dashboard input,
+  .portal-shell .faculty-dashboard select,
+  .portal-shell .faculty-dashboard button {
+    font-size: 0.78rem;
+  }
+
+  .faculty-welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .faculty-subject-title {
+    font-size: 1rem;
+  }
+
+  .faculty-description {
+    font-size: 0.8rem;
+  }
+
+  .faculty-section-label,
+  .faculty-classroom-label,
+  .faculty-active-classroom {
+    font-size: 0.8rem;
+  }
+
+  .faculty-dashboard .tracking-wider {
+    letter-spacing: 0.04em;
+  }
+
+  .faculty-dashboard .student-roster-table {
+    max-width: 100%;
+  }
 }

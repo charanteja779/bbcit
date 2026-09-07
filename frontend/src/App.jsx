@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import heroImg from "./assets/college logo.png";
 import Login from "./components/login";
-import Register from "./components/register";
 import ForgotPassword from "./components/forgotpassword";
 import Home from "./Container/Home";
 import Dashboard from "./Container/Dashboard";
@@ -17,7 +16,7 @@ function AppLayout() {
   const userString = localStorage.getItem("user");
   const user = userString ? normalizeUser(JSON.parse(userString)) : null;
   const isAuthenticated = !!user;
-  const isAuthPage = location.pathname === "/" || location.pathname === "/register" || location.pathname === "/forgot-password";
+  const isAuthPage = location.pathname === "/" || location.pathname === "/forgot-password";
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -33,7 +32,6 @@ function AppLayout() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Protected Routes */}

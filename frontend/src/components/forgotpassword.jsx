@@ -6,11 +6,11 @@ import "../components/AuthForm.css";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resetToken, setResetToken] = useState("");
-  const [step, setStep] = useState(1); // Step 1: Email, Step 2: Reset form
+  const [step, setStep] = useState(1);
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -25,17 +25,35 @@ function ForgotPassword() {
     }
 
     try {
-      const res = await api.post(
-        "/api/auth/forgot-password",
-        { email }
-      );
-
-      setSuccess(res.data.message || "Reset token sent!");
-      setResetToken(res.data.resetToken);
+      const res = await api.post("/api/auth/forgot-password", { email });
+      setSuccess(res.data.message || "Verification code sent to your email.");
       setStep(2);
       setLoading(false);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to send reset token");
+      setError(err.response?.data?.message || "Failed to send verification code");
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    if (!code) {
+      setError("Verification code is required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await api.post("/api/auth/verify-forgot-password", { email, code });
+      setSuccess(res.data.message || "Code verified successfully.");
+      setStep(3);
+      setLoading(false);
+    } catch (err) {
+      setError(err.response?.data?.message || "Code verification failed");
       setLoading(false);
     }
   };
@@ -77,7 +95,11 @@ function ForgotPassword() {
         {/* Heading */}
         <h1 className="auth-heading">Reset Password</h1>
         <p className="auth-subtitle">
-          {step === 1 ? "Enter your email to receive reset instructions" : "Enter your new password"}
+          {step === 1
+            ? "Enter your email to receive a verification code"
+            : step === 2
+              ? "Enter the 6-digit verification code from your email"
+              : "Enter your new password after verification"}
         </p>
 
         {/* Error Message */}
@@ -114,9 +136,29 @@ function ForgotPassword() {
           </form>
         )}
 
-        {/* Step 2: Password Reset Form */}
+        {/* Step 2: Verification code entry */}
         {step === 2 && (
-          <ResetPasswordForm email={email} resetToken={resetToken} />
+          <form onSubmit={handleVerifyCode}>
+            <div className="form-group">
+              <label className="form-label">Verification Code</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Enter 6-digit code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? "Verifying..." : "Verify Code"}
+            </button>
+          </form>
+        )}
+
+        {/* Step 3: Password Reset Form */}
+        {step === 3 && (
+          <ResetPasswordForm email={email} code={code} />
         )}
 
         {/* Back to Login */}
@@ -146,7 +188,7 @@ function ForgotPassword() {
 }
 
 // Reset Password Form Component
-function ResetPasswordForm({ email, resetToken }) {
+function ResetPasswordForm({ email, code }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
@@ -192,7 +234,7 @@ function ResetPasswordForm({ email, resetToken }) {
         "/api/auth/reset-password",
         {
           email,
-          resetToken,
+          code,
           newPassword: passwords.newPassword
         }
       );

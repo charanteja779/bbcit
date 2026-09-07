@@ -1,3 +1,4 @@
+// Developer_Hash: bbcit-faculty-subject-years-v2
 import React, { useState } from "react";
 import api from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
@@ -14,43 +15,16 @@ function Register() {
     username: "",
     email: "",
     password: "",
-    role: "student",
-    rollNo: "",
-    section: "",
-    course: "",
-    year: "",
     department: "",
     subject: "",
   });
 
-  const selectedRole = String(formData.role || "").toLowerCase();
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => {
-      const next = {
-        ...prev,
-        [name]: value,
-      };
-
-      if (name === "role") {
-        const nextRole = String(value || "").toLowerCase();
-
-        if (nextRole === "student") {
-          next.department = "";
-          next.subject = "";
-        } else if (nextRole === "faculty") {
-          next.rollNo = "";
-          next.section = "";
-          next.course = "";
-          next.year = "";
-        }
-      }
-
-      return next;
-    });
-
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
     setError("");
   };
 
@@ -60,8 +34,8 @@ function Register() {
     setError("");
     setSuccess("");
 
-    if (!formData.username || !formData.email || !formData.password) {
-      setError("Username, Email, and Password are required");
+    if (!formData.username || !formData.email || !formData.password || !formData.subject.trim()) {
+      setError("Full Name, Email, Password, and Teaching Subject are required");
       setLoading(false);
       return;
     }
@@ -94,39 +68,24 @@ function Register() {
       return;
     }
 
-    if (selectedRole === "student" && !formData.rollNo.trim()) {
-      setError("Roll number is required for students");
-      setLoading(false);
-      return;
-    }
-
     try {
       const res = await api.post("/api/auth/register", {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        role: selectedRole,
-        rollNo: formData.rollNo,
-        course: formData.course,
-        year: formData.year,
-        section: formData.section,
-        department: formData.department,
-        subject: formData.subject,
+        role: "faculty",
+        department: formData.department || "Academics",
+        subject: formData.subject.trim(),
       });
 
       setSuccess(
-        res.data.message || "Registration successful! Redirecting to login..."
+        res.data.message || "Faculty registration successful! Redirecting to login..."
       );
 
       setFormData({
         username: "",
         email: "",
         password: "",
-        role: "student",
-        rollNo: "",
-        section: "",
-        course: "",
-        year: "",
         department: "",
         subject: "",
       });
@@ -134,7 +93,7 @@ function Register() {
 
       setTimeout(() => {
         navigate("/");
-      }, 2000);
+      }, 1800);
     } catch (err) {
       setError(
         err.response?.data?.message || "Registration failed. Please try again."
@@ -154,19 +113,34 @@ function Register() {
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
         <div className="auth-hero-content">
-          <h1 className="auth-hero-title">Welcome to<br/>student portal</h1>
+          <h1 className="auth-hero-title">Welcome to<br/>faculty portal</h1>
           <p className="auth-hero-subtitle">
-            Create your account to join
+            Create your faculty account with your teaching subject to manage student rosters and attendance
           </p>
-          <img src={heroImg} alt="Student Portal" className="hero-illustration" />
+          <img src={heroImg} alt="Faculty Portal" className="hero-illustration" />
         </div>
       </div>
 
       {/* Right Pane: Form Content (Scrollable) */}
       <div className="auth-content">
         <div className="auth-card">
-          <h1 className="auth-heading">Sign Up</h1>
-          <p className="auth-subtitle">Create your account to continue</p>
+          <h1 className="auth-heading">Faculty Sign Up</h1>
+          <p className="auth-subtitle">Create a faculty account to continue</p>
+
+          <div
+            style={{
+              padding: "10px 14px",
+              backgroundColor: "rgba(99, 102, 241, 0.08)",
+              border: "1px solid rgba(99, 102, 241, 0.25)",
+              borderRadius: "8px",
+              marginBottom: "16px",
+              fontSize: "13px",
+              color: "#6366f1",
+              lineHeight: "1.4",
+            }}
+          >
+            <strong>Note for Students:</strong> Student accounts are created directly by faculty members. Log in with your Roll Number on the login page.
+          </div>
 
           {error && <div className="error-message">{error}</div>}
           {success && <div className="success-message">{success}</div>}
@@ -179,7 +153,7 @@ function Register() {
                   type="text"
                   name="username"
                   className="form-input"
-                  placeholder="John Doe"
+                  placeholder="e.g. Dr. Alan Turing"
                   value={formData.username}
                   onChange={handleChange}
                   required
@@ -194,10 +168,42 @@ function Register() {
                   type="email"
                   name="email"
                   className="form-input"
-                  placeholder="your@email.com"
+                  placeholder="faculty@bbcit.edu.in"
                   value={formData.email}
                   onChange={handleChange}
                   required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Teaching Subject *</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  name="subject"
+                  className="form-input"
+                  placeholder="e.g. MSCS, Data Structures, Mathematics, Python"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <span style={{ fontSize: "11px", color: "#94a3b8", marginTop: "3px", display: "block" }}>
+                This subject will be automatically assigned to all your class attendance sessions.
+              </span>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Department</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  name="department"
+                  className="form-input"
+                  placeholder="e.g. Computer Science"
+                  value={formData.department}
+                  onChange={handleChange}
                 />
               </div>
             </div>
@@ -209,7 +215,7 @@ function Register() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   className="form-input"
-                  placeholder="Create a strong password"
+                  placeholder="Create a strong password (min 6 chars)"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -225,135 +231,6 @@ function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Role</label>
-              <div style={{ position: "relative" }}>
-                <select
-                  name="role"
-                  className="form-input"
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  <option value="student">Student</option>
-                  <option value="faculty">Faculty</option>
-                </select>
-              </div>
-            </div>
-
-            {selectedRole === "student" && (
-              <div
-                style={{
-                  marginTop: "16px",
-                  paddingTop: "16px",
-                  borderTop: "1px solid #3f3f46",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    color: "#a1a1aa",
-                    margin: "0 0 16px 0",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Academic Information
-                </p>
-
-                <div className="form-group">
-                  <label className="form-label">Roll Number</label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type="text"
-                      name="rollNo"
-                      className="form-input"
-                      placeholder="e.g., 21BD5A0526"
-                      value={formData.rollNo}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Class / Section</label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type="text"
-                      name="section"
-                      className="form-input"
-                      placeholder="e.g., B.sc-A"
-                      value={formData.section}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Course</label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type="text"
-                      name="course"
-                      className="form-input"
-                      placeholder="e.g., Bachelor of Computer Science"
-                      value={formData.course}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Year</label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type="text"
-                      name="year"
-                      className="form-input"
-                      placeholder="e.g., 1st Year"
-                      value={formData.year}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {selectedRole === "faculty" && (
-              <div
-                style={{
-                  marginTop: "16px",
-                  paddingTop: "16px",
-                  borderTop: "1px solid #3f3f46",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    color: "#a1a1aa",
-                    margin: "0 0 16px 0",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Professional Information
-                </p>
-
-                <div className="form-group">
-                  <label className="form-label">Department</label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type="text"
-                      name="department"
-                      className="form-input"
-                      placeholder="e.g., Computer Science"
-                      value={formData.department}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="form-row">
               <label className="checkbox-wrapper">
                 <input type="checkbox" required />
@@ -368,7 +245,7 @@ function Register() {
               className={`submit-button ${loading ? "loading" : ""}`}
               disabled={loading}
             >
-              {loading ? "Creating Account..." : "Sign up"}
+              {loading ? "Creating Faculty Account..." : "Create Faculty Account"}
             </button>
           </form>
 
@@ -387,3 +264,4 @@ function Register() {
 }
 
 export default Register;
+

@@ -1,7 +1,19 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const Student = require("../models/student");
+const Faculty = require("../models/faculty");
 
 const JWT_SECRET = process.env.JWT_SECRET || "secretKey";
+
+const findUserByIdAcrossCollections = async (id) => {
+  const [user, student, faculty] = await Promise.all([
+    User.findById(id),
+    Student.findById(id),
+    Faculty.findById(id),
+  ]);
+
+  return user || student || faculty || null;
+};
 
 const auth = async (req, res, next) => {
   try {
@@ -13,7 +25,7 @@ const auth = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await findUserByIdAcrossCollections(decoded.id);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid token" });
@@ -33,4 +45,11 @@ const requireFaculty = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, requireFaculty, JWT_SECRET };
+const requireAdmin = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
+};
+
+module.exports = { auth, requireFaculty, requireAdmin, JWT_SECRET };

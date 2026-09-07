@@ -1,3 +1,4 @@
+// Developer_Hash: bbcit-faculty-subject-years-v2
 const express = require("express");
 const router = express.Router();
 const Attendance = require("../models/attendance");
@@ -28,11 +29,11 @@ const formatAttendanceRecord = (record) => ({
 // POST /api/attendance/mark
 router.post("/mark", auth, requireFaculty, async (req, res) => {
   try {
-    const { className, section, subject, date, students } = req.body;
+    const { className, section, year, subject, date, students } = req.body;
 
-    if (!className || !section || !subject || !date) {
+    if (!section || !subject || !date) {
       return res.status(400).json({
-        message: "className, section, subject, and date are required",
+        message: "section, subject, and date are required",
       });
     }
 
@@ -46,6 +47,11 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
     const markedByFacultyId = String(req.user._id);
     const markedByFacultyName = req.user.username || "Faculty";
     const savedRecords = [];
+
+    const effectiveClassName = String(className || `${year || ""} Section ${section}`).trim();
+    const effectiveYear = String(year || "").trim();
+    const effectiveSection = String(section || "").trim();
+    const effectiveSubject = String(subject || "").trim();
 
     for (const student of students) {
       const rollNo = String(student.rollNo || student.rollNumber || "").trim();
@@ -62,20 +68,23 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
       const filter = {
         rollNo: normalizeRollNo(rollNo),
         date,
-        subject: String(subject).trim(),
-        className: String(className).trim(),
-        section: String(section).trim(),
+        subject: effectiveSubject,
+        section: effectiveSection,
       };
+
+      if (effectiveYear) {
+        filter.year = effectiveYear;
+      }
 
       const update = {
         studentId: String(student.studentId || student.id || student._id || rollNo),
         studentName: student.studentName || student.name || "",
         rollNo: normalizeRollNo(rollNo),
-        className: String(className).trim(),
-        section: String(section).trim(),
+        className: effectiveClassName,
+        section: effectiveSection,
         course: String(student.course || "").trim(),
-        year: String(student.year || "").trim(),
-        subject: String(subject).trim(),
+        year: String(student.year || effectiveYear).trim(),
+        subject: effectiveSubject,
         date,
         status,
         markedByFacultyId,
@@ -188,22 +197,34 @@ router.get("/student/:rollNo/graph", auth, async (req, res) => {
   }
 });
 
-// GET /api/attendance/class?className=1A&section=A&subject=Maths&date=2026-06-14
+// GET /api/attendance/class?section=A&year=1st Year&subject=MSCS&date=2026-06-14
 router.get("/class", auth, requireFaculty, async (req, res) => {
   try {
-    const { className, section, subject, date } = req.query;
+    const { className, section, year, subject, date } = req.query;
 
-    if (!className || !section || !subject) {
+    if (!section && !className) {
       return res.status(400).json({
-        message: "className, section, and subject are required",
+        message: "section or className is required",
       });
     }
 
-    const filter = {
-      className: String(className).trim(),
-      section: String(section).trim(),
-      subject: String(subject).trim(),
-    };
+    const filter = {};
+
+    if (subject) {
+      filter.subject = String(subject).trim();
+    }
+
+    if (section) {
+      filter.section = String(section).trim();
+    }
+
+    if (year) {
+      filter.year = String(year).trim();
+    }
+
+    if (className && !section) {
+      filter.className = String(className).trim();
+    }
 
     if (date) {
       filter.date = String(date).trim();
