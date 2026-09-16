@@ -2,7 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const Attendance = require("../models/attendance");
-const { auth, requireFaculty } = require("../middleware/auth");
+const Student = require("../models/student");
+const { auth, requireFaculty, requireFacultyOrAdmin } = require("../middleware/auth");
 
 const normalizeRollNo = (value) =>
   String(value || "").trim().toLowerCase();
@@ -18,6 +19,7 @@ const formatAttendanceRecord = (record) => ({
   year: record.year,
   subject: record.subject,
   date: record.date,
+  session: record.session || "morning",
   status: record.status,
   markedByFacultyId: record.markedByFacultyId,
   markedByFacultyName: record.markedByFacultyName,
@@ -29,7 +31,11 @@ const formatAttendanceRecord = (record) => ({
 // POST /api/attendance/mark
 router.post("/mark", auth, requireFaculty, async (req, res) => {
   try {
-    const { className, section, year, subject, date, students } = req.body;
+    const { className, section, year, subject, date, session = "morning", students } = req.body;
+
+    if (!['morning', 'afternoon'].includes(String(session).toLowerCase())) {
+      return res.status(400).json({ message: "session must be morning or afternoon" });
+    }
 
     if (!section || !subject || !date) {
       return res.status(400).json({
@@ -68,7 +74,9 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
       const filter = {
         rollNo: normalizeRollNo(rollNo),
         date,
+        session: String(session).toLowerCase(),
         subject: effectiveSubject,
+        className: effectiveClassName,
         section: effectiveSection,
       };
 
@@ -86,6 +94,7 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
         year: String(student.year || effectiveYear).trim(),
         subject: effectiveSubject,
         date,
+        session: String(session).toLowerCase(),
         status,
         markedByFacultyId,
         markedByFacultyName,
@@ -130,7 +139,7 @@ router.get("/student/:rollNo", auth, async (req, res) => {
       return res.status(400).json({ message: "Roll number is required" });
     }
 
-    const records = await Attendance.find({ rollNo }).sort({ date: 1 });
+    const records = await Attendance.find({ rollNo }).sort({ date: 1, session: 1 });
 
     res.json({
       records: records.map(formatAttendanceRecord),
@@ -153,7 +162,7 @@ router.get("/student/:rollNo/graph", auth, async (req, res) => {
       return res.status(400).json({ message: "Roll number is required" });
     }
 
-    const records = await Attendance.find({ rollNo }).sort({ date: 1 });
+    const records = await Attendance.find({ rollNo }).sort({ date: 1, session: 1 });
 
     const byDate = new Map();
 
@@ -197,10 +206,10 @@ router.get("/student/:rollNo/graph", auth, async (req, res) => {
   }
 });
 
-// GET /api/attendance/class?section=A&year=1st Year&subject=MSCS&date=2026-06-14
-router.get("/class", auth, requireFaculty, async (req, res) => {
+// GET /api/attendance/class?section=A&year=1st Year&subject=MSCS&date=2026-06-14&session=morning
+router.get("/class", auth, requireFacultyOrAdmin, async (req, res) => {
   try {
-    const { className, section, year, subject, date } = req.query;
+    const { className, section, year, subject, date, session } = req.query;
 
     if (!section && !className) {
       return res.status(400).json({
@@ -230,6 +239,14 @@ router.get("/class", auth, requireFaculty, async (req, res) => {
       filter.date = String(date).trim();
     }
 
+    if (session) {
+      const normalizedSession = String(session).trim().toLowerCase();
+      if (!['morning', 'afternoon'].includes(normalizedSession)) {
+        return res.status(400).json({ message: "session must be morning or afternoon" });
+      }
+      filter.session = normalizedSession;
+    }
+
     const records = await Attendance.find(filter).sort({ date: -1, studentName: 1 });
 
     res.json({
@@ -241,6 +258,99 @@ router.get("/class", auth, requireFaculty, async (req, res) => {
       message: "Failed to fetch class attendance",
       error: err.message,
     });
+  }
+});
+
+// GET /api/attendance/low?threshold=75&section=A&year=1st Year&subject=MSCS
+router.get("/low", auth, requireFacultyOrAdmin, async (req, res) => {
+  try {
+    const { className, section, year, subject } = req.query;
+    const threshold = Number(req.query.threshold || 75);
+    if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
+      return res.status(400).json({ message: "threshold must be between 0 and 100" });
+    }
+
+    const filter = {};
+    if (className) filter.className = String(className).trim();
+    if (section) filter.section = String(section).trim();
+    if (year) filter.year = String(year).trim();
+    if (subject) filter.subject = String(subject).trim();
+
+    const studentFilter = { role: "student" };
+    if (section) studentFilter.section = String(section).trim();
+    if (year) studentFilter.year = String(year).trim();
+    if (req.query.branch) studentFilter.branch = String(req.query.branch).trim();
+
+    const [records, roster] = await Promise.all([
+      Attendance.find(filter).sort({ rollNo: 1, subject: 1, date: 1, session: 1 }),
+      Student.find(studentFilter).sort({ rollNo: 1, username: 1 }),
+    ]);
+    const students = new Map();
+
+    roster.forEach((student) => {
+      students.set(normalizeRollNo(student.rollNo), {
+        studentId: String(student._id),
+        studentName: student.username,
+        rollNo: student.rollNo,
+        className: student.section,
+        section: student.section,
+        year: student.year,
+        subjects: new Map(),
+        overall: { attended: 0, total: 0 },
+      });
+    });
+
+    records.forEach((record) => {
+      const key = normalizeRollNo(record.rollNo);
+      if (!students.has(key)) {
+        students.set(key, {
+          studentId: record.studentId,
+          studentName: record.studentName,
+          rollNo: record.rollNo,
+          className: record.className,
+          section: record.section,
+          year: record.year,
+          subjects: new Map(),
+          overall: { attended: 0, total: 0 },
+        });
+      }
+
+      const student = students.get(key);
+      const subjectKey = record.subject || "General";
+      if (!student.subjects.has(subjectKey)) {
+        student.subjects.set(subjectKey, { subject: subjectKey, attended: 0, total: 0 });
+      }
+
+      const subjectStats = student.subjects.get(subjectKey);
+      subjectStats.total += 1;
+      student.overall.total += 1;
+      if (record.status === "present") {
+        subjectStats.attended += 1;
+        student.overall.attended += 1;
+      }
+    });
+
+    const lowAttendance = Array.from(students.values()).map((student) => {
+      const subjects = Array.from(student.subjects.values()).map((stats) => ({
+        ...stats,
+        percentage: stats.total ? Math.round((stats.attended / stats.total) * 100) : 0,
+      }));
+      const overall = {
+        ...student.overall,
+        percentage: student.overall.total
+          ? Math.round((student.overall.attended / student.overall.total) * 100)
+          : 0,
+      };
+
+      return { ...student, subjects, overall };
+    }).filter((student) =>
+      student.overall.percentage < threshold || student.subjects.some((subjectStats) => subjectStats.percentage < threshold)
+    );
+
+    res.json({ threshold, students: lowAttendance });
+  } catch (err) {
+    console.error("Get low attendance error:", err);
+    res.status(500).json({ message: "Failed to fetch low attendance students", error: err.message });
   }
 });
 

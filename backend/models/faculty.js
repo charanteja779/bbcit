@@ -9,7 +9,7 @@ const FacultySchema = new mongoose.Schema(
     branch: { type: String, default: "", trim: true },
     year: { type: String, default: "", trim: true },
     department: { type: String, default: "Academics", trim: true },
-    subject: { type: String, default: "", trim: true },
+    subject: { type: String, required: true, trim: true },
     resetToken: { type: String, default: null },
     resetTokenExpiry: { type: Date, default: null },
   },

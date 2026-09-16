@@ -88,6 +88,51 @@ const clearResetCodeEntry = (email) => {
   passwordResetCodes.delete(normalizeEmail(email));
 };
 
+router.post("/register", async (req, res) => {
+  try {
+    const { username, email, password, department, subject, role = "faculty" } = req.body;
+
+    if (role !== "faculty") {
+      return res.status(400).json({ message: "Only faculty registration is supported" });
+    }
+
+    const facultyName = String(username || "").trim();
+    const normalizedEmail = normalizeEmail(email);
+    const facultySubject = String(subject || "").trim();
+
+    if (!facultyName || !normalizedEmail || !password || !facultySubject) {
+      return res.status(400).json({
+        message: "Name, email, password, and teaching subject are required",
+      });
+    }
+
+    const existingUser = await resolveUserRecord(normalizedEmail);
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const faculty = await Faculty.create({
+      username: facultyName,
+      email: normalizedEmail,
+      password: await bcrypt.hash(String(password), 10),
+      role: "faculty",
+      department: String(department || "Academics").trim() || "Academics",
+      subject: facultySubject,
+    });
+
+    res.status(201).json({
+      message: "Faculty registration successful",
+      user: formatUserResponse(faculty),
+    });
+  } catch (err) {
+    console.error("Faculty registration error:", err);
+    res.status(500).json({
+      message: "Faculty registration failed",
+      error: err.message,
+    });
+  }
+});
+
 router.post("/create-user", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -121,6 +166,10 @@ router.post("/create-user", auth, async (req, res) => {
     }
 
     const targetRole = ["student", "faculty"].includes(role) ? role : "student";
+    const facultySubject = String(subject || "").trim();
+    if (targetRole === "faculty" && !facultySubject) {
+      return res.status(400).json({ message: "Faculty subject is required" });
+    }
     const generatedPassword = password || (targetRole === "student" ? String(rollNo || "").trim() : "Admin@123");
     if (!generatedPassword) {
       return res.status(400).json({ message: "Student roll number is required when no password is provided" });
@@ -137,7 +186,7 @@ router.post("/create-user", auth, async (req, res) => {
           branch: String(branch || "").trim(),
           year: String(facultyYear || year || "").trim(),
           department: String(department || "").trim() || "Academics",
-          subject: String(subject || "").trim(),
+          subject: facultySubject,
         })
       : await Student.create({
           username: String(username).trim(),

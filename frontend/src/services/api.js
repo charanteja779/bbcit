@@ -44,6 +44,9 @@ export const attendanceAPI = {
 
   getClassAttendance: (params) =>
     api.get("/api/attendance/class", { params }),
+
+  getLowAttendance: (params = {}) =>
+    api.get("/api/attendance/low", { params }),
 };
 
 export const studentsAPI = {

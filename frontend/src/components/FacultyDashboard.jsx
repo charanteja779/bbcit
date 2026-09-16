@@ -24,6 +24,7 @@ import {
   aggregateAttendanceBySession,
 } from "../utils/attendanceUtils";
 import { attendanceAPI, studentsAPI, authAPI } from "../services/api";
+import LowAttendancePanel from "./LowAttendancePanel";
 
 const ACADEMIC_YEARS = ["1st Year", "2nd Year", "3rd Year"];
 const ACADEMIC_SECTIONS = ["A", "B", "C", "D"];
@@ -59,6 +60,9 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
   // Attendance states
   const [classAttendanceRecords, setClassAttendanceRecords] = useState([]);
   const [existingTodayAttendance, setExistingTodayAttendance] = useState({});
+  const [attendanceSession, setAttendanceSession] = useState(
+    new Date().getHours() < 12 ? "morning" : "afternoon"
+  );
 
   // Forms
   const [studentForm, setStudentForm] = useState({
@@ -84,6 +88,7 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isAttendanceSubmitted, setIsAttendanceSubmitted] = useState(false);
+  const [attendanceEditVersion, setAttendanceEditVersion] = useState(0);
 
   // Sync profile on mount to get registered subject
   useEffect(() => {
@@ -176,6 +181,7 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
           section: selectedSection,
           year: selectedYear,
           subject: facultySubject,
+          session: attendanceSession,
           date: attendanceDate,
         }),
       ]);
@@ -197,7 +203,7 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
     } finally {
       setFetchingRecords(false);
     }
-  }, [selectedBranch, selectedYear, selectedSection, facultySubject]);
+  }, [selectedBranch, selectedYear, selectedSection, facultySubject, attendanceSession]);
 
   useEffect(() => {
     setStudentForm({
@@ -378,6 +384,7 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
         year: selectedYear,
         subject: facultySubject,
         date: attendanceDate,
+        session: attendanceSession,
         students: students.map((student) => {
           const studentKey = getStudentKey(student);
           const isPresent = Boolean(
@@ -418,6 +425,7 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
 
   const handleEditAttendance = () => {
     setIsAttendanceSubmitted(false);
+    setAttendanceEditVersion((version) => version + 1);
   };
 
   const showWelcome = section === "dashboard";
@@ -1031,7 +1039,26 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
               </div>
             </div>
 
+            <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 p-3">
+              <span className="text-sm font-bold text-slate-700">Class session</span>
+              {["morning", "afternoon"].map((session) => (
+                <button
+                  key={session}
+                  type="button"
+                  onClick={() => setAttendanceSession(session)}
+                  className={`rounded-lg px-4 py-2 text-sm font-bold capitalize transition-colors ${
+                    attendanceSession === session
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {session}
+                </button>
+              ))}
+            </div>
+
             <AttendanceTable
+              key={`${attendanceSession}-${attendanceEditVersion}`}
               students={studentsWithExistingAttendance}
               onSubmit={handleSubmitAttendance}
               loading={loading || fetchingRecords}
@@ -1039,6 +1066,17 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
               onEdit={handleEditAttendance}
             />
           </div>
+
+          <LowAttendancePanel
+            title="Students below 75% in this subject"
+            params={{
+              className: `${selectedBranch} - ${selectedYear} - Section ${selectedSection}`,
+              section: selectedSection,
+              year: selectedYear,
+              branch: selectedBranch,
+              subject: facultySubject,
+            }}
+          />
 
           {/* Previous Attendance Records for this Classroom & Subject */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-7">

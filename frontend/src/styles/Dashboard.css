@@ -15,11 +15,13 @@
 .portal-shell main {
   background: transparent;
   min-width: 0;
+  width: 100%;
 }
 
 .faculty-dashboard {
   max-width: 100%;
-  overflow-wrap: normal;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .faculty-welcome-title,
@@ -28,9 +30,9 @@
 .faculty-section-label,
 .faculty-classroom-label,
 .faculty-active-classroom {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .faculty-dashboard button,
@@ -41,6 +43,33 @@
 
 .faculty-dashboard table {
   max-width: 100%;
+}
+
+.portal-shell main > div,
+.portal-shell main > div > div,
+.faculty-dashboard > *,
+.faculty-dashboard section,
+.faculty-dashboard article {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.faculty-dashboard h1,
+.faculty-dashboard h2,
+.faculty-dashboard h3,
+.faculty-dashboard h4,
+.faculty-dashboard p,
+.faculty-dashboard label,
+.faculty-dashboard span,
+.portal-shell td,
+.portal-shell th {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.portal-shell .overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .faculty-dashboard > * + * {
@@ -276,6 +305,50 @@
   }
 
   .faculty-dashboard .student-roster-table {
+    max-width: 100%;
+  }
+
+  .portal-shell main > div > div:first-child h1 {
+    line-height: 1.25;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .faculty-dashboard .grid {
+    min-width: 0;
+  }
+
+  .faculty-dashboard .flex:not(.flex-col) {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .portal-shell main {
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  .portal-shell .p-4,
+  .portal-shell .p-5,
+  .portal-shell .p-6,
+  .portal-shell .lg\:p-8 {
+    padding: 0.75rem;
+  }
+
+  .faculty-dashboard .grid-cols-3,
+  .faculty-dashboard .grid-cols-4,
+  .faculty-dashboard .grid-cols-5,
+  .faculty-dashboard .grid-cols-10 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .faculty-dashboard .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .faculty-dashboard button,
+  .faculty-dashboard select,
+  .faculty-dashboard input {
     max-width: 100%;
   }
 }

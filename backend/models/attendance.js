@@ -11,6 +11,12 @@ const AttendanceSchema = new mongoose.Schema(
     year: { type: String, default: "" },
     subject: { type: String, required: true },
     date: { type: String, required: true },
+    session: {
+      type: String,
+      enum: ["morning", "afternoon"],
+      default: "morning",
+      required: true,
+    },
     status: {
       type: String,
       enum: ["present", "absent"],
@@ -24,7 +30,7 @@ const AttendanceSchema = new mongoose.Schema(
 );
 
 AttendanceSchema.index(
-  { rollNo: 1, date: 1, subject: 1, className: 1, section: 1 },
+  { rollNo: 1, date: 1, session: 1, subject: 1, className: 1, section: 1 },
   { unique: true }
 );
 

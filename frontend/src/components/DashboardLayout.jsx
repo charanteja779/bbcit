@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import StudentDashboard from "./StudentDashboard";
 import FacultyDashboard from "./FacultyDashboard";
 import EventGallery from "./EventGallery";
+import LowAttendancePanel from "./LowAttendancePanel";
 import { Pencil, Save, Trash2, X } from "lucide-react";
 
 const DEFAULT_SECTION = "dashboard";
@@ -41,7 +42,10 @@ const DashboardLayout = ({ user = {}, role = "student", onLogout = () => {} }) =
 
   const renderContent = () => {
     if (activeSection === "attendance") {
-      if (normalizedRole === "admin" || normalizedRole === "faculty") {
+      if (normalizedRole === "admin") {
+        return <LowAttendancePanel title="Students below 75% attendance" />;
+      }
+      if (normalizedRole === "faculty") {
         return <FacultyDashboard user={user} section="attendance" />;
       }
       return <StudentDashboard user={user} onNavigate={handleNavigate} section="attendance" />;
@@ -200,7 +204,6 @@ function AdminDashboard({ section, onOpenSettings }) {
           <button type="button" onClick={loadRecords} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">Refresh</button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {yearTotals.map((entry) => <div key={entry.year} className="rounded-xl border border-slate-200 bg-slate-50 p-4"><div className="flex justify-between font-bold text-slate-800"><span>{entry.year}</span><span>{entry.count}</span></div><div className="mt-3 space-y-2">{entry.branches.length ? entry.branches.map((branch) => <div key={branch.branch} className="flex justify-between text-sm text-slate-600"><span>{branch.branch}</span><span className="font-semibold">{branch.count}</span></div>) : <p className="text-sm text-slate-400">No students</p>}</div></div>)}
         </div>
       </div>
       <div className="flex flex-wrap gap-3"><button type="button" onClick={onOpenSettings} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700">Open Settings</button></div>

@@ -6,6 +6,9 @@ export const getStudentKey = (student) =>
 export const normalizeRollNo = (value) =>
   String(value || "").trim().toLowerCase();
 
+export const calculateAttendancePercentage = (attended, total) =>
+  total > 0 ? Math.round((attended / total) * 100) : 0;
+
 export const normalizeUser = (user = {}) => {
   const rollNo =
     user.rollNo || user.rollNumber || user.rollno || user.regNo || "";
@@ -114,6 +117,7 @@ export const dedupeAttendanceRecords = (records) => {
       normalizeRollNo(record.rollNo),
       String(record.subject || "").trim().toLowerCase(),
       String(record.date || ""),
+      String(record.session || "morning"),
       String(record.className || record.section || "")
         .trim()
         .toLowerCase(),
@@ -129,12 +133,13 @@ export const aggregateAttendanceBySession = (records) => {
   const grouped = new Map();
 
   records.forEach((record) => {
-    const key = `${record.date}_${record.section || record.className}_${record.subject}`;
+    const key = `${record.date}_${record.session || "morning"}_${record.section || record.className}_${record.subject}`;
 
     if (!grouped.has(key)) {
       grouped.set(key, {
         id: key,
         date: record.date,
+        session: record.session || "morning",
         section: record.section || record.className,
         subject: record.subject,
         totalStudents: 0,

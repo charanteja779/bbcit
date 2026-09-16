@@ -66,6 +66,16 @@ const findExistingAccount = async (email, rollNo) => {
   return matches.find(Boolean) || null;
 };
 
+const createStudentEmail = async (rollNo, year, section) => {
+  const cleanRollKey = String(rollNo).toLowerCase().replace(/[^a-z0-9]/g, "") || "stu";
+  const cleanYearKey = String(year).toLowerCase().replace(/[^a-z0-9]/g, "") || "y1";
+  const cleanSectionKey = String(section).toLowerCase().replace(/[^a-z0-9]/g, "") || "a";
+  const baseEmail = `${cleanRollKey}.${cleanYearKey}.${cleanSectionKey}@bbcit.edu.in`;
+
+  if (!(await findExistingAccount(baseEmail, ""))) return baseEmail;
+  return `${cleanRollKey}_${Date.now()}@bbcit.edu.in`;
+};
+
 router.get("/records", auth, requireAdmin, async (_req, res) => {
   try {
     const [students, faculty] = await Promise.all([
@@ -105,6 +115,10 @@ router.put("/records/:role/:id", auth, requireAdmin, async (req, res) => {
 
     if (!updates.username || !updates.email) {
       return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    if (role === "faculty" && !updates.subject) {
+      return res.status(400).json({ message: "Faculty subject is required" });
     }
 
     const duplicate = await Model.findOne({
@@ -150,7 +164,32 @@ router.post("/import", auth, requireAdmin, upload.single("file"), async (req, re
 
     const workbook = XLSX.read(req.file.buffer, { type: "buffer", cellDates: false });
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+    const sheetRows = XLSX.utils.sheet_to_json(firstSheet, {
+      header: 1,
+      defval: "",
+      raw: false,
+    });
+    const firstRowKeys = (sheetRows[0] || []).map(normalizeKey);
+    const hasHeaderRow = firstRowKeys.some((key) => [
+      "name",
+      "username",
+      "studentname",
+      "facultyname",
+      "fullname",
+      "email",
+      "rollno",
+      "rollnumber",
+      "studentid",
+      "studentnumber",
+      "registrationnumber",
+    ].includes(key));
+    const rows = hasHeaderRow
+      ? XLSX.utils.sheet_to_json(firstSheet, { defval: "" })
+      : sheetRows.map((row) => ({
+          rollNo: row[0] || "",
+          name: row[1] || "",
+          email: row[2] || "",
+        }));
 
     if (!rows.length) {
       return res.status(400).json({ message: "The selected file has no data rows" });
@@ -161,13 +200,21 @@ router.post("/import", auth, requireAdmin, upload.single("file"), async (req, re
 
     for (const [index, row] of rows.entries()) {
       const rowNumber = index + 2;
-      const username = valueFor(row, "name", "username", "student name", "faculty name");
-      const email = valueFor(row, "email").toLowerCase();
-      const rollNo = valueFor(row, "rollNo", "roll number", "roll");
+      const username = valueFor(row, "name", "username", "student name", "faculty name", "full name");
+      const rollNo = valueFor(row, "rollNo", "roll number", "roll", "student id", "student number", "registration number");
+      const subject = valueFor(row, "subject");
+      const course = valueFor(row, "course", "branch");
+      const year = valueFor(row, "year", "academic year");
+      const section = valueFor(row, "section", "class");
+      let email = valueFor(row, "email").toLowerCase();
 
-      if (!username || !email || (requestedRole === "student" && !rollNo)) {
-        skipped.push({ row: rowNumber, reason: "Name, email, and student roll number are required" });
+      if (!username || (requestedRole === "student" && !rollNo) || (requestedRole === "faculty" && (!email || !subject))) {
+        skipped.push({ row: rowNumber, reason: requestedRole === "faculty" ? "Name, email, and faculty subject are required" : "Name and student roll number are required" });
         continue;
+      }
+
+      if (requestedRole === "student" && !email) {
+        email = await createStudentEmail(rollNo, year, section);
       }
 
       const existing = await findExistingAccount(email, requestedRole === "student" ? rollNo : "");
@@ -188,12 +235,12 @@ router.post("/import", auth, requireAdmin, upload.single("file"), async (req, re
         ? await Student.create({
             ...baseData,
             rollNo,
-            course: valueFor(row, "course", "branch"),
+            course,
             branch: valueFor(row, "branch", "course"),
-            year: valueFor(row, "year"),
-            section: valueFor(row, "section", "class"),
+            year,
+            section,
             department: valueFor(row, "department"),
-            subject: valueFor(row, "subject"),
+            subject,
           })
         : await Faculty.create({
             ...baseData,

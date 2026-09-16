@@ -15,7 +15,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { normalizeUser, normalizeRollNo } from "../utils/attendanceUtils";
+import {
+  normalizeUser,
+  normalizeRollNo,
+  calculateAttendancePercentage,
+} from "../utils/attendanceUtils";
 import { attendanceAPI, authAPI } from "../services/api";
 
 const StudentDashboard = ({ user = {}, section = "dashboard" }) => {
@@ -110,10 +114,10 @@ const StudentDashboard = ({ user = {}, section = "dashboard" }) => {
       const totalClasses = records.length;
       const presentClasses = records.filter((record) => record.isPresent).length;
       const absentClasses = totalClasses - presentClasses;
-      const attendancePercentage =
-        totalClasses > 0
-          ? Math.round((presentClasses / totalClasses) * 100)
-          : 0;
+      const attendancePercentage = calculateAttendancePercentage(
+        presentClasses,
+        totalClasses
+      );
 
       // Calculate attendance percentage by subject
       const subjectStats = new Map();
@@ -131,7 +135,7 @@ const StudentDashboard = ({ user = {}, section = "dashboard" }) => {
 
       const chartData = Array.from(subjectStats.entries()).map(([subject, stats]) => ({
         subject,
-        percentage: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0,
+        percentage: calculateAttendancePercentage(stats.present, stats.total),
       }));
 
       const latestBySubject = new Map();

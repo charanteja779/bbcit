@@ -52,4 +52,11 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, requireFaculty, requireAdmin, JWT_SECRET };
+const requireFacultyOrAdmin = (req, res, next) => {
+  if (!['faculty', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({ message: "Faculty or admin access required" });
+  }
+  next();
+};
+
+module.exports = { auth, requireFaculty, requireAdmin, requireFacultyOrAdmin, JWT_SECRET };

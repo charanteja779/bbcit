@@ -135,7 +135,8 @@ textarea {
   .portal-shell p,
   .portal-shell td,
   .portal-shell th {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 }
 
