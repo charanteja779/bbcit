@@ -1068,13 +1068,12 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
           </div>
 
           <LowAttendancePanel
-            title="Students below 75% in this subject"
+            title="Students below 75% monthly attendance"
             params={{
               className: `${selectedBranch} - ${selectedYear} - Section ${selectedSection}`,
               section: selectedSection,
               year: selectedYear,
               branch: selectedBranch,
-              subject: facultySubject,
             }}
           />
 

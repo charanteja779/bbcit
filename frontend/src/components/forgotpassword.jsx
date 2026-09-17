@@ -25,12 +25,19 @@ function ForgotPassword() {
     }
 
     try {
-      const res = await api.post("/api/auth/forgot-password", { email });
+      const normalizedEmail = email.trim().toLowerCase();
+      const res = await api.post("/api/auth/forgot-password", {
+        email: normalizedEmail,
+      });
+      setEmail(normalizedEmail);
       setSuccess(res.data.message || "Verification code sent to your email.");
       setStep(2);
       setLoading(false);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to send verification code");
+      setError(
+        err.response?.data?.message ||
+        "Failed to send verification code. Please try again."
+      );
       setLoading(false);
     }
   };
@@ -48,7 +55,11 @@ function ForgotPassword() {
     }
 
     try {
-      const res = await api.post("/api/auth/verify-forgot-password", { email, code });
+      const res = await api.post("/api/auth/verify-forgot-password", {
+        email: email.trim().toLowerCase(),
+        code: code.trim(),
+      });
+      setCode(code.trim());
       setSuccess(res.data.message || "Code verified successfully.");
       setStep(3);
       setLoading(false);
@@ -59,48 +70,20 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="auth-container">
+    <div className="forgot-password-page">
       <div className="auth-card">
-        <div style={{
-          textAlign: "center",
-          marginBottom: "28px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "12px"
-        }}>
-          <img
-            src={heroImg}
-            alt="BBCIT Logo"
-            style={{
-              width: "120px",
-              height: "120px",
-              borderRadius: "12px",
-              filter: "drop-shadow(0 4px 12px rgba(90, 58, 168, 0.15))",
-              transition: "transform 0.3s ease"
-            }}
-            className="logo-img"
-          />
-          <div style={{
-            fontSize: "13px",
-            fontWeight: "600",
-            color: "#5a3aa8",
-            letterSpacing: "0.5px",
-            textTransform: "uppercase"
-          }}>
-            BANKATLAL BADRUKA COLLEGE FOR INFORMATION AND TECHNOLOGY
-          </div>
-        </div>
-
-        {/* Heading */}
-        <h1 className="auth-heading">Reset Password</h1>
+        <img className="forgot-password-logo" src={heroImg} alt="BBCIT Logo" />
+        <h1 className="auth-heading">Forgot your password?</h1>
         <p className="auth-subtitle">
           {step === 1
-            ? "Enter your email to receive a verification code"
+            ? "Enter your email address and we will send you a link to reset your password"
             : step === 2
               ? "Enter the 6-digit verification code from your email"
               : "Enter your new password after verification"}
         </p>
+
+        <div className="forgot-password-form-content">
+          <h1 className="auth-heading">Reset Password</h1>
 
         {/* Error Message */}
         {error && <div className="error-message">{error}</div>}
@@ -114,11 +97,10 @@ function ForgotPassword() {
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div style={{ position: 'relative' }}>
-                <div className="input-icon">✉️</div>
                 <input
                   type="email"
-                  className="form-input"
-                  placeholder="your@email.com"
+                  className="form-input forgot-password-input"
+                  placeholder="Email Address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -126,13 +108,12 @@ function ForgotPassword() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={loading}
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
+            <div className="forgot-password-actions">
+              <Link to="/" className="forgot-password-cancel">Cancel</Link>
+              <button type="submit" className="submit-button" disabled={loading}>
+                {loading ? "Sending..." : "Reset"}
+              </button>
+            </div>
           </form>
         )}
 
@@ -161,26 +142,10 @@ function ForgotPassword() {
           <ResetPasswordForm email={email} code={code} />
         )}
 
-        {/* Back to Login */}
-        <div style={{
-          marginTop: "24px",
-          textAlign: "center",
-          fontSize: "14px",
-          color: "#6b7280"
-        }}>
-          <span>Remember your password? </span>
-          <Link to="/" style={{
-            color: "#5a3aa8",
-            textDecoration: "none",
-            fontWeight: "600",
-            cursor: "pointer",
-            transition: "color 0.3s ease"
-          }}
-          onMouseEnter={(e) => e.target.style.color = "#7c3aed"}
-          onMouseLeave={(e) => e.target.style.color = "#5a3aa8"}
-          >
-            Back to Login
-          </Link>
+          <div className="form-footer forgot-password-footer">
+            <span className="form-footer-text">Remember your password?</span>
+            <Link to="/" className="signup-button">Back to Login</Link>
+          </div>
         </div>
       </div>
     </div>
@@ -233,8 +198,8 @@ function ResetPasswordForm({ email, code }) {
       const res = await api.post(
         "/api/auth/reset-password",
         {
-          email,
-          code,
+          email: email.trim().toLowerCase(),
+          code: code.trim(),
           newPassword: passwords.newPassword
         }
       );

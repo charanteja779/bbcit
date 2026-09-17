@@ -1,4 +1,133 @@
 /* Dark Mode Figma Layout */
+.forgot-password-page {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8fc;
+  background-image: radial-gradient(circle at 15% 12%, rgba(117, 81, 194, 0.1), transparent 28%);
+}
+
+.forgot-password-logo {
+  display: block;
+  width: 116px;
+  height: 116px;
+  object-fit: contain;
+  margin: 0 auto 24px;
+  filter: drop-shadow(0 8px 12px rgba(81, 52, 145, 0.18));
+}
+
+.forgot-password-page .auth-card {
+  max-width: 470px;
+  padding: 42px 44px 34px;
+  background: #ffffff;
+  border: 1px solid #e1e1ea;
+  border-radius: 4px;
+  box-shadow: 0 10px 28px rgba(45, 31, 82, 0.08);
+  color: #252533;
+}
+
+.forgot-password-page .auth-heading {
+  color: #252533;
+  text-align: center;
+  font-size: 30px;
+  letter-spacing: 0;
+}
+
+.forgot-password-page > .auth-card > .auth-subtitle {
+  max-width: 360px;
+  margin: 0 auto 30px;
+  color: #777787;
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.forgot-password-form-content > .auth-heading {
+  display: none;
+}
+
+.forgot-password-page .form-label {
+  color: #5f5f70;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.forgot-password-page .forgot-password-input {
+  min-height: 52px;
+  padding: 12px 14px;
+  color: #252533;
+  background: #ffffff;
+  border: 1px solid #d7d7e0;
+  border-radius: 3px;
+  font-size: 16px;
+}
+
+.forgot-password-page .forgot-password-input:focus {
+  border-color: #8864c5;
+  box-shadow: 0 0 0 3px rgba(136, 100, 197, 0.14);
+}
+
+.forgot-password-page .forgot-password-input::placeholder {
+  color: #a6a6b3;
+}
+
+.forgot-password-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.forgot-password-actions .submit-button,
+.forgot-password-cancel {
+  min-height: 52px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.forgot-password-actions .submit-button {
+  padding: 14px;
+  background: #8963c5;
+}
+
+.forgot-password-actions .submit-button:hover {
+  background: #7650b3;
+}
+
+.forgot-password-cancel {
+  border: 1px solid #d7d7e0;
+  color: #686879;
+  background: #ffffff;
+}
+
+.forgot-password-cancel:hover {
+  background: #f6f4fa;
+}
+
+@media (max-width: 600px) {
+  .forgot-password-page {
+    padding: 24px 16px;
+  }
+
+  .forgot-password-page .auth-card {
+    padding: 32px 22px 26px;
+  }
+
+  .forgot-password-actions {
+    gap: 12px;
+  }
+}
+
 .auth-split-wrapper {
   display: flex;
   width: 100%;

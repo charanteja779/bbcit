@@ -44,7 +44,7 @@ const LowAttendancePanel = ({ title = "Students below 75% attendance", params = 
             {title}
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Formula: classes attended / total classes x 100
+            All subjects combined for the selected month. Formula: attended / total x 100
           </p>
         </div>
         <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
@@ -70,23 +70,16 @@ const LowAttendancePanel = ({ title = "Students below 75% attendance", params = 
                 <th className="px-4 py-3">Student</th>
                 <th className="px-4 py-3">Roll No</th>
                 <th className="px-4 py-3">Class</th>
-                <th className="px-4 py-3">Subjects below 75%</th>
-                <th className="px-4 py-3 text-right">Overall</th>
+                <th className="px-4 py-3 text-right">Monthly attendance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {students.map((student) => {
-                const lowSubjects = student.subjects.filter((subject) => subject.percentage < 75);
                 return (
                   <tr key={`${student.rollNo}-${student.studentId}`}>
                     <td className="px-4 py-3 font-semibold text-slate-800">{student.studentName}</td>
                     <td className="px-4 py-3 font-mono text-xs text-slate-600">{student.rollNo}</td>
                     <td className="px-4 py-3 text-slate-600">{student.year} / {student.section}</td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {lowSubjects.length
-                        ? lowSubjects.map((subject) => `${subject.subject}: ${subject.percentage}%`).join(", ")
-                        : "None"}
-                    </td>
                     <td className="px-4 py-3 text-right font-bold text-rose-600">{student.overall.percentage}%</td>
                   </tr>
                 );
