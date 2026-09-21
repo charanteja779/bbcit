@@ -135,16 +135,6 @@ console.log("STORED TOKEN:", localStorage.getItem("token"));
                   {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: "#94a3b8",
-                  marginTop: "4px",
-                  display: "block",
-                }}
-              >
-                Students: Default password is your Roll Number.
-              </span>
             </div>
 
             {/* Forgot Password */}
