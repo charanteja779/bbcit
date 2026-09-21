@@ -29,27 +29,18 @@ function Login() {
     try {
       const res = await api.post("/api/auth/login", {
         identifier: credentials.identifier.trim(),
-        email: credentials.identifier.trim(),
         password: credentials.password,
       });
 
-      // Store token and normalized user data
-      // DEBUG: inspect login response
-console.log("LOGIN RESPONSE:", res.data);
-console.log("LOGIN TOKEN:", res.data.token);
+      if (!res.data.token) {
+        throw new Error("Backend did not return a login token");
+      }
 
-if (!res.data.token) {
-  throw new Error("Backend did not return a login token");
-}
-
-// Store token and normalized user data
 localStorage.setItem("token", res.data.token);
 localStorage.setItem(
   "user",
   JSON.stringify(normalizeUser(res.data.user))
 );
-
-console.log("STORED TOKEN:", localStorage.getItem("token"));
 
       navigate("/dashboard");
     } catch (err) {
