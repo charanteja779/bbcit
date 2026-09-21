@@ -124,10 +124,12 @@ function ForgotPassword() {
               <label className="form-label">Verification Code</label>
               <input
                 type="text"
-                className="form-input"
+                className="form-input forgot-password-input"
                 placeholder="Enter 6-digit code"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                inputMode="numeric"
+                maxLength={6}
                 required
               />
             </div>

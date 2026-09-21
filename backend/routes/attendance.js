@@ -261,20 +261,26 @@ router.get("/class", auth, requireFacultyOrAdmin, async (req, res) => {
   }
 });
 
-// GET /api/attendance/low?threshold=75&section=A&year=1st Year&subject=MSCS
+// GET /api/attendance/low?threshold=75&section=A&year=1st Year&month=2026-09
 router.get("/low", auth, requireFacultyOrAdmin, async (req, res) => {
   try {
-    const { className, section, year, subject } = req.query;
+    const { className, section, year } = req.query;
     const threshold = Number(req.query.threshold || 75);
     if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
       return res.status(400).json({ message: "threshold must be between 0 and 100" });
+    }
+
+    const month = String(req.query.month || "").trim();
+    const effectiveMonth = month || new Date().toISOString().slice(0, 7);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(effectiveMonth)) {
+      return res.status(400).json({ message: "month must use YYYY-MM format" });
     }
 
     const filter = {};
     if (className) filter.className = String(className).trim();
     if (section) filter.section = String(section).trim();
     if (year) filter.year = String(year).trim();
-    if (subject) filter.subject = String(subject).trim();
+    filter.date = new RegExp(`^${effectiveMonth}`);
 
     const studentFilter = { role: "student" };
     if (section) studentFilter.section = String(section).trim();
@@ -295,7 +301,6 @@ router.get("/low", auth, requireFacultyOrAdmin, async (req, res) => {
         className: student.section,
         section: student.section,
         year: student.year,
-        subjects: new Map(),
         overall: { attended: 0, total: 0 },
       });
     });
@@ -310,31 +315,18 @@ router.get("/low", auth, requireFacultyOrAdmin, async (req, res) => {
           className: record.className,
           section: record.section,
           year: record.year,
-          subjects: new Map(),
           overall: { attended: 0, total: 0 },
         });
       }
 
       const student = students.get(key);
-      const subjectKey = record.subject || "General";
-      if (!student.subjects.has(subjectKey)) {
-        student.subjects.set(subjectKey, { subject: subjectKey, attended: 0, total: 0 });
-      }
-
-      const subjectStats = student.subjects.get(subjectKey);
-      subjectStats.total += 1;
       student.overall.total += 1;
       if (record.status === "present") {
-        subjectStats.attended += 1;
         student.overall.attended += 1;
       }
     });
 
     const lowAttendance = Array.from(students.values()).map((student) => {
-      const subjects = Array.from(student.subjects.values()).map((stats) => ({
-        ...stats,
-        percentage: stats.total ? Math.round((stats.attended / stats.total) * 100) : 0,
-      }));
       const overall = {
         ...student.overall,
         percentage: student.overall.total
@@ -342,12 +334,12 @@ router.get("/low", auth, requireFacultyOrAdmin, async (req, res) => {
           : 0,
       };
 
-      return { ...student, subjects, overall };
+      return { ...student, overall };
     }).filter((student) =>
-      student.overall.percentage < threshold || student.subjects.some((subjectStats) => subjectStats.percentage < threshold)
+      student.overall.total > 0 && student.overall.percentage < threshold
     );
 
-    res.json({ threshold, students: lowAttendance });
+    res.json({ threshold, month: effectiveMonth, students: lowAttendance });
   } catch (err) {
     console.error("Get low attendance error:", err);
     res.status(500).json({ message: "Failed to fetch low attendance students", error: err.message });
