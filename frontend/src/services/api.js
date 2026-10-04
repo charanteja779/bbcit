@@ -52,6 +52,14 @@ export const attendanceAPI = {
 export const studentsAPI = {
   getStudents: (params) => api.get("/api/students", { params }),
   createStudent: (studentData) => api.post("/api/students", studentData),
+  importStudents: (file, classroom) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    Object.entries(classroom).forEach(([key, value]) => formData.append(key, value));
+    return api.post("/api/students/import", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
   updateStudent: (id, studentData) => api.put(`/api/students/${id}`, studentData),
   deleteStudent: (id) => api.delete(`/api/students/${id}`),
 };

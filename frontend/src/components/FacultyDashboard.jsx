@@ -1,5 +1,5 @@
 // Developer_Hash: bbcit-faculty-subject-years-v2
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -15,6 +15,7 @@ import {
   Layers,
   CheckCircle2,
   AlertCircle,
+  FileSpreadsheet,
 } from "lucide-react";
 import AttendanceTable from "./AttendanceTable";
 import {
@@ -56,6 +57,9 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
   const [students, setStudents] = useState([]);
   const [fetchingStudents, setFetchingStudents] = useState(false);
   const [addingStudent, setAddingStudent] = useState(false);
+  const [studentImportFile, setStudentImportFile] = useState(null);
+  const [importingStudents, setImportingStudents] = useState(false);
+  const studentImportInput = useRef(null);
 
   // Attendance states
   const [classAttendanceRecords, setClassAttendanceRecords] = useState([]);
@@ -305,6 +309,38 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
       );
     } finally {
       setAddingStudent(false);
+    }
+  };
+
+  const handleImportStudents = async () => {
+    if (!studentImportFile) {
+      showError("Choose an Excel or CSV file to import.");
+      return;
+    }
+
+    setImportingStudents(true);
+    setErrorMessage("");
+    try {
+      const response = await studentsAPI.importStudents(studentImportFile, {
+        branch: studentForm.branch,
+        year: studentForm.year,
+        section: studentForm.section,
+      });
+      const totals = response.data.totals || {};
+      const skippedSummary = (response.data.skipped || [])
+        .slice(0, 3)
+        .map((item) => `Row ${item.row}: ${item.reason}`)
+        .join("; ");
+      showMessage(
+        `${response.data.message}${skippedSummary ? `. ${skippedSummary}` : ""}`
+      );
+      setStudentImportFile(null);
+      if (studentImportInput.current) studentImportInput.current.value = "";
+      if (totals.imported > 0) await fetchStudents();
+    } catch (error) {
+      showError(error.response?.data?.message || "Failed to import student spreadsheet.");
+    } finally {
+      setImportingStudents(false);
     }
   };
 
@@ -716,6 +752,37 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
               </div>
               <div className="px-3.5 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-bold border border-indigo-100">
                 {studentForm.branch} • {studentForm.year} • Section {studentForm.section}
+              </div>
+            </div>
+
+            <div className="mb-6 flex flex-col gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <FileSpreadsheet size={20} className="mt-0.5 shrink-0 text-emerald-700" />
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Add students from spreadsheet</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Use columns for name and roll number; email, course, branch, year, and section are optional.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 sm:min-w-72 sm:flex-row">
+                <input
+                  ref={studentImportInput}
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={(event) => setStudentImportFile(event.target.files?.[0] || null)}
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs file:mr-2 file:rounded-md file:border-0 file:bg-emerald-50 file:px-2 file:py-1 file:font-semibold file:text-emerald-800"
+                  aria-label="Choose student spreadsheet"
+                />
+                <button
+                  type="button"
+                  onClick={handleImportStudents}
+                  disabled={!studentImportFile || importingStudents}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {importingStudents ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
+                  {importingStudents ? "Importing..." : "Import"}
+                </button>
               </div>
             </div>
 

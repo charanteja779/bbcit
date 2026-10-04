@@ -1,9 +1,55 @@
 // Developer_Hash: bbcit-faculty-subject-years-v2
 const express = require("express");
+const multer = require("multer");
+const XLSX = require("xlsx");
 const router = express.Router();
 const Student = require("../models/student");
+const User = require("../models/user");
+const Faculty = require("../models/faculty");
 const bcrypt = require("bcryptjs");
 const { auth, requireFaculty } = require("../middleware/auth");
+const spreadsheetUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+const normalizeKey = (value) => String(value || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
+const valueFor = (row, ...keys) => {
+  const normalizedRow = Object.entries(row).reduce((result, [key, value]) => {
+    result[normalizeKey(key)] = value;
+    return result;
+  }, {});
+
+  for (const key of keys) {
+    const value = normalizedRow[normalizeKey(key)];
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  return "";
+};
+
+const accountExists = async (email) => {
+  const [user, student, faculty] = await Promise.all([
+    User.findOne({ email }),
+    Student.findOne({ email }),
+    Faculty.findOne({ email }),
+  ]);
+  return Boolean(user || student || faculty);
+};
+
+const createStudentEmail = async (rollNo, year, section) => {
+  const clean = (value, fallback) => String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "") || fallback;
+  const base = `${clean(rollNo, "student")}.${clean(year, "year")}.${clean(section, "section")}@bbcit.edu.in`;
+  if (!(await accountExists(base))) return base;
+
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const candidate = `${base.split("@")[0]}.${suffix}@bbcit.edu.in`;
+    if (!(await accountExists(candidate))) return candidate;
+  }
+  throw new Error("Could not generate a unique student email address");
+};
 
 const formatStudentResponse = (student) => ({
   id: student._id,
@@ -68,6 +114,109 @@ router.get("/", auth, async (req, res) => {
       message: "Failed to fetch students from database",
       error: err.message,
     });
+  }
+});
+
+// POST /api/students/import - Import a faculty classroom spreadsheet
+router.post("/import", auth, requireFaculty, spreadsheetUpload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please select an Excel or CSV file" });
+    }
+
+    const extension = req.file.originalname.split(".").pop().toLowerCase();
+    if (!["xlsx", "xls", "csv"].includes(extension)) {
+      return res.status(400).json({ message: "Only XLSX, XLS, and CSV files are supported" });
+    }
+
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer", cellDates: false });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    if (!firstSheet) {
+      return res.status(400).json({ message: "The selected file has no worksheet" });
+    }
+
+    const sheetRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: false });
+    const headerKeys = (sheetRows[0] || []).map(normalizeKey);
+    const hasHeaderRow = headerKeys.some((key) =>
+      ["name", "username", "studentname", "fullname", "rollno", "rollnumber", "studentid"].includes(key)
+    );
+    const rows = hasHeaderRow
+      ? XLSX.utils.sheet_to_json(firstSheet, { defval: "", raw: false })
+      : sheetRows.map((row) => ({ rollNo: row[0] || "", name: row[1] || "", email: row[2] || "" }));
+
+    if (!rows.length) {
+      return res.status(400).json({ message: "The selected file has no student rows" });
+    }
+
+    const imported = [];
+    const skipped = [];
+
+    for (const [index, row] of rows.entries()) {
+      const rowNumber = index + (hasHeaderRow ? 2 : 1);
+      const username = valueFor(row, "name", "username", "student name", "full name");
+      const rollNo = valueFor(row, "rollNo", "roll number", "roll", "student id", "student number");
+      const year = valueFor(row, "year", "academic year") || String(req.body.year || "").trim();
+      const section = valueFor(row, "section", "class") || String(req.body.section || "").trim();
+      const branch = valueFor(row, "branch", "department") || String(req.body.branch || "").trim();
+      const course = valueFor(row, "course") || branch || "B.Sc";
+      let email = valueFor(row, "email").toLowerCase();
+
+      if (!username || !rollNo) {
+        skipped.push({ row: rowNumber, reason: "Student name and roll number are required" });
+        continue;
+      }
+      if (!year || !section) {
+        skipped.push({ row: rowNumber, reason: "Select a year and section before importing" });
+        continue;
+      }
+
+      const escapedYear = year.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedSection = section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedRollNo = rollNo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const existingRoll = await Student.findOne({
+        role: "student",
+        year: new RegExp(`^${escapedYear}$`, "i"),
+        section: new RegExp(`^${escapedSection}$`, "i"),
+        rollNo: new RegExp(`^${escapedRollNo}$`, "i"),
+      });
+      if (existingRoll) {
+        skipped.push({ row: rowNumber, reason: `Roll number ${rollNo} already exists in ${year} / ${section}` });
+        continue;
+      }
+
+      if (email && await accountExists(email)) {
+        skipped.push({ row: rowNumber, reason: `Email ${email} is already registered` });
+        continue;
+      }
+      if (!email) email = await createStudentEmail(rollNo, year, section);
+
+      try {
+        const password = valueFor(row, "password") || rollNo;
+        const student = await Student.create({
+          username,
+          email,
+          password: await bcrypt.hash(password, 10),
+          role: "student",
+          rollNo,
+          branch,
+          course,
+          year,
+          section,
+        });
+        imported.push(formatStudentResponse(student));
+      } catch (error) {
+        skipped.push({ row: rowNumber, reason: error.code === 11000 ? "Duplicate student email or roll number" : "Student record could not be saved" });
+      }
+    }
+
+    res.status(201).json({
+      message: `${imported.length} student(s) imported; ${skipped.length} skipped`,
+      imported,
+      skipped,
+      totals: { imported: imported.length, skipped: skipped.length },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to import student spreadsheet", error: error.message });
   }
 });
 
