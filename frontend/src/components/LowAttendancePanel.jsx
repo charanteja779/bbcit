@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Download, Loader2 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { attendanceAPI } from "../services/api";
 
 const LowAttendancePanel = ({ title = "Students below 75% attendance", params = {} }) => {
   const [students, setStudents] = useState([]);
+  const [month, setMonth] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -15,7 +18,10 @@ const LowAttendancePanel = ({ title = "Students below 75% attendance", params = 
     attendanceAPI
       .getLowAttendance({ threshold: 75, ...params })
       .then((response) => {
-        if (active) setStudents(response.data.students || []);
+        if (active) {
+          setStudents(response.data.students || []);
+          setMonth(response.data.month || "");
+        }
       })
       .catch((requestError) => {
         if (active) {
@@ -35,6 +41,34 @@ const LowAttendancePanel = ({ title = "Students below 75% attendance", params = 
     };
   }, [JSON.stringify(params)]);
 
+  const downloadStudents = () => {
+    const report = new jsPDF();
+    report.setFontSize(16);
+    report.text("Students Below 75% Attendance", 14, 18);
+    report.setFontSize(10);
+    report.setTextColor(90);
+    report.text(`Monthly report: ${month || "Current month"}`, 14, 26);
+    report.text(`Students: ${students.length}`, 14, 32);
+
+    autoTable(report, {
+      startY: 39,
+      head: [["Student name", "Roll number", "Year", "Section", "Attendance"]],
+      body: students.map((student) => [
+        student.studentName || "",
+        student.rollNo || "",
+        student.year || "",
+        student.section || "",
+        `${student.overall.percentage}%`,
+      ]),
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [51, 65, 85] },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: 14, right: 14 },
+    });
+
+    report.save(`students-below-75-${month || "attendance"}.pdf`);
+  };
+
   return (
     <section className="rounded-3xl border border-amber-200 bg-white p-5 shadow-sm sm:p-7">
       <div className="mb-5 flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
@@ -47,9 +81,21 @@ const LowAttendancePanel = ({ title = "Students below 75% attendance", params = 
             All subjects combined for the selected month. Formula: attended / total x 100
           </p>
         </div>
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-          {students.length} students
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+            {students.length} students
+          </span>
+          <button
+            type="button"
+            onClick={downloadStudents}
+            disabled={loading || Boolean(error) || students.length === 0}
+            title="Download student list as PDF"
+            aria-label="Download student list as PDF"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Download size={17} />
+          </button>
+        </div>
       </div>
 
       {loading ? (
