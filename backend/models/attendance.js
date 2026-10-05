@@ -22,6 +22,7 @@ const AttendanceSchema = new mongoose.Schema(
       enum: ["present", "absent"],
       required: true,
     },
+    absenceEmailSentAt: { type: Date, default: null },
     markedByFacultyId: { type: String, required: true },
     markedByFacultyName: { type: String, required: true },
     markedAt: { type: Date, default: Date.now },

@@ -3,10 +3,13 @@ const express = require("express");
 const router = express.Router();
 const Attendance = require("../models/attendance");
 const Student = require("../models/student");
+const User = require("../models/user");
+const { sendEmail } = require("../utils/mailer");
 const { auth, requireFaculty, requireFacultyOrAdmin } = require("../middleware/auth");
 
 const normalizeRollNo = (value) =>
   String(value || "").trim().toLowerCase();
+const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const formatAttendanceRecord = (record) => ({
   id: record._id,
@@ -53,6 +56,9 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
     const markedByFacultyId = String(req.user._id);
     const markedByFacultyName = req.user.username || "Faculty";
     const savedRecords = [];
+    let emailsSent = 0;
+    let emailFailures = 0;
+    const emailFailureDetails = [];
 
     const effectiveClassName = String(className || `${year || ""} Section ${section}`).trim();
     const effectiveYear = String(year || "").trim();
@@ -84,6 +90,10 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
         filter.year = effectiveYear;
       }
 
+      const previousRecord = status === "absent"
+        ? await Attendance.findOne(filter).select("status absenceEmailSentAt").lean()
+        : null;
+
       const update = {
         studentId: String(student.studentId || student.id || student._id || rollNo),
         studentName: student.studentName || student.name || "",
@@ -99,6 +109,7 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
         markedByFacultyId,
         markedByFacultyName,
         markedAt,
+        ...(status === "present" ? { absenceEmailSentAt: null } : {}),
       };
 
       const record = await Attendance.findOneAndUpdate(filter, update, {
@@ -109,6 +120,37 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
       });
 
       savedRecords.push(formatAttendanceRecord(record));
+
+      if (status === "absent" && !previousRecord?.absenceEmailSentAt) {
+        try {
+          const rollNoPattern = new RegExp(`^${escapeRegex(rollNo.trim())}$`, "i");
+          const studentAccount =
+            (await Student.findOne({ role: "student", rollNo: rollNoPattern }).select("email username").lean()) ||
+            (await User.findOne({ role: "student", rollNo: rollNoPattern }).select("email username").lean());
+
+          if (!studentAccount?.email) {
+            throw new Error("Registered student email not found");
+          }
+
+          const studentName = studentAccount.username || student.studentName || "Student";
+          await sendEmail({
+            to: studentAccount.email,
+            subject: "Attendance Absence Notification - BBCIT",
+            text: `Hello ${studentName},\n\nYou were marked absent for ${effectiveSubject} on ${date} (${session}). If you believe this is incorrect, please contact your faculty.\n\nBBCIT`,
+            html: "<h3>Attendance Absence Notification</h3><p>You were marked absent for a class. If you believe this is incorrect, please contact your faculty.</p>",
+          });
+          await Attendance.updateOne(
+            { _id: record._id },
+            { $set: { absenceEmailSentAt: new Date() } }
+          );
+          emailsSent += 1;
+        } catch (emailError) {
+          emailFailures += 1;
+          const failureMessage = emailError.message || "Mail delivery failed";
+          emailFailureDetails.push({ rollNo, message: failureMessage });
+          console.error(`Failed to send student absence notification for roll number ${rollNo}:`, failureMessage);
+        }
+      }
     }
 
     if (savedRecords.length === 0) {
@@ -118,8 +160,13 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
     }
 
     res.json({
-      message: "Attendance saved successfully",
+      message: emailFailures
+        ? "Attendance saved, but one or more absence emails failed"
+        : "Attendance saved successfully",
       records: savedRecords,
+      emailsSent,
+      emailFailures,
+      emailFailureDetails,
     });
   } catch (err) {
     console.error("Mark attendance error:", err);

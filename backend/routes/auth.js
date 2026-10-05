@@ -1,70 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const Mailjet = require("node-mailjet");
+const { sendEmail } = require("../utils/mailer");
 const User = require("../models/user");
 const Student = require("../models/student");
 const Faculty = require("../models/faculty");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { auth, JWT_SECRET } = require("../middleware/auth");
-
-// ======================================================
-// MAILJET CONFIGURATION
-// ======================================================
-
-const mailjet = Mailjet.apiConnect(
-  process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE
-);
-
-const sendEmail = async ({ to, subject, text, html }) => {
-  if (!to) return;
-
-  try {
-    const request = mailjet
-      .post("send", {
-        version: "v3.1",
-      })
-      .request({
-        Messages: [
-          {
-            From: {
-              Email: process.env.MJ_FROM_EMAIL,
-              Name: process.env.MJ_FROM_NAME || "BBCIT",
-            },
-
-            To: [
-              {
-                Email: to,
-              },
-            ],
-
-            Subject: subject,
-
-            TextPart: text,
-
-            HTMLPart: html,
-          },
-        ],
-      });
-
-    const result = await request;
-
-    console.log(
-      "Mailjet email sent successfully:",
-      result.body
-    );
-
-    return result.body;
-  } catch (error) {
-    console.error(
-      "Mailjet email send failed:",
-      error?.response?.body || error.message || error
-    );
-
-    throw error;
-  }
-};
 
 // ======================================================
 // FORMAT USER RESPONSE

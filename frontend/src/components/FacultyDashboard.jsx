@@ -442,12 +442,20 @@ const FacultyDashboard = ({ user = {}, section = "dashboard" }) => {
         }),
       };
 
-      await attendanceAPI.markAttendance(payload);
+      const attendanceResponse = await attendanceAPI.markAttendance(payload);
       await fetchClassAttendance();
       setIsAttendanceSubmitted(true);
-      showMessage(
-        `Attendance for ${selectedBranch} - ${selectedYear} - Section ${selectedSection} (${facultySubject}) saved successfully!`
-      );
+      const emailFailures = Number(attendanceResponse.data.emailFailures || 0);
+      if (emailFailures > 0) {
+        const failureDetails = (attendanceResponse.data.emailFailureDetails || [])
+          .map((failure) => `${failure.rollNo}: ${failure.message}`)
+          .join(" | ");
+        showError(`Attendance saved, but ${emailFailures} absence email(s) failed.${failureDetails ? ` ${failureDetails}` : " Check the backend logs and Mailjet configuration."}`);
+      } else {
+        showMessage(
+          `Attendance for ${selectedBranch} - ${selectedYear} - Section ${selectedSection} (${facultySubject}) saved successfully!`
+        );
+      }
     } catch (error) {
       console.error("Error submitting attendance:", error);
       showError(
