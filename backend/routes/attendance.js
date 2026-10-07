@@ -10,6 +10,14 @@ const { auth, requireFaculty, requireFacultyOrAdmin } = require("../middleware/a
 const normalizeRollNo = (value) =>
   String(value || "").trim().toLowerCase();
 const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeHtml = (value) =>
+  String(value || "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
 
 const formatAttendanceRecord = (record) => ({
   id: record._id,
@@ -137,7 +145,7 @@ router.post("/mark", auth, requireFaculty, async (req, res) => {
             to: studentAccount.email,
             subject: "Attendance Absence Notification - BBCIT",
             text: `Hello ${studentName},\n\nYou were marked absent for ${effectiveSubject} on ${date} (${session}). If you believe this is incorrect, please contact your faculty.\n\nBBCIT`,
-            html: "<h3>Attendance Absence Notification</h3><p>You were marked absent for a class. If you believe this is incorrect, please contact your faculty.</p>",
+            html: `<p>Hello <strong>${escapeHtml(studentName)}</strong>, you were marked absent for <strong>${escapeHtml(effectiveSubject)}</strong> on <strong>${escapeHtml(date)} (${escapeHtml(session)})</strong>. If you believe this is incorrect, please contact your faculty.</p>`,
           });
           await Attendance.updateOne(
             { _id: record._id },
